@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Számkotta">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=2">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,6 +75,21 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .eyebrow{margin:12px 0 6px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eyebrow b{color:var(--accent);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.4px;text-transform:none}
 .h1.song{margin:0 0 20px}
+.dateline{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-top:12px}
+.dateline svg{width:14px;height:14px;flex:none}
+.dateline .datein{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%}
+.dateline+.titlein{margin-top:0;margin-bottom:20px}
+.empty{background:var(--surface);border-radius:16px;padding:36px 24px 28px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.empty h2{margin:0 0 8px;font-family:var(--display);font-weight:700;font-size:20px}
+.empty p{margin:0 0 22px;color:var(--muted);font-size:15px;line-height:1.45;max-width:270px}
+.ebtn{height:48px;padding:0 22px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px;display:inline-flex;align-items:center;gap:8px}
+.epic{position:relative;width:104px;height:88px;margin-bottom:22px}
+.ec{position:absolute;left:18px;top:4px;width:68px;height:80px;border-radius:12px}
+.ec.c1{background:var(--muted);opacity:.2;transform:rotate(-8deg);top:0}.ec.c2{background:var(--muted);opacity:.35;transform:rotate(6deg)}
+.ec.c3{top:6px;background:var(--accent-soft);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ec.c3 b{font-family:var(--display);font-weight:800;font-size:30px;line-height:1}
+.ec.c3 small{font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.ec.nums b{font-size:20px;letter-spacing:1px}
 .chip{background:var(--surface);border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
 .chip.k{background:var(--ink);color:var(--bg);font-family:var(--display)}
 .note{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:15px;margin:0 0 14px;line-height:1.4}
@@ -242,6 +257,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const KEYS=["C","C#","Db","D","Eb","E","F","F#","Gb","G","Ab","A","B","H"];
 const ico={
+  cal:'<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="1.5" y="2.5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1.5 6h11M4.5 1v3M9.5 1v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   back:'<svg width="11" height="19" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   chev:'<svg width="8" height="13" viewBox="0 0 8 13" aria-hidden="true"><path d="m1.5 1.5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   plus:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
@@ -443,6 +459,19 @@ const coll=new Intl.Collator("hu");
 const sortedSongs=()=>[...songs.values()].sort((a,b)=>coll.compare(a.title||"",b.title||""));
 const sortedSets=()=>[...setlists.values()].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
 function nextSunday(){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7));const p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
+/* friendly empty screens: a small picture, one line on what it's for, one clear button */
+function emptyState(kind){
+  const t=new Date(), M=["jan","feb","márc","ápr","máj","jún","júl","aug","szept","okt","nov","dec"];
+  const pic=kind==="sets"?'<div class="epic"><span class="ec c1"></span><span class="ec c2"></span><span class="ec c3"><b>'+t.getDate()+'</b><small>'+M[t.getMonth()]+'</small></span></div>'
+    :'<div class="epic"><span class="ec c1"></span><span class="ec c2"></span><span class="ec c3 nums"><b>1 4</b><b>5 6</b></span></div>';
+  const T={sets:["Még nincs setlist","Rakd össze a következő alkalmat, és színpadon egy koppintással lapozhatsz a dalok között.","new","Első setlist"],
+    songs:["Még nincs dal","Írd be az első kottádat, vagy illeszd be egy képernyőképről.","new","Első dal"],
+    set:["Üres a setlist","Válaszd ki a dalokat, a sorrendet utána húzással rendezheted.","picker","Dalok hozzáadása"]}[kind];
+  return '<div class="empty">'+pic+'<h2>'+T[0]+'</h2><p>'+T[1]+'</p><button class="ebtn" data-act="'+T[2]+'">'+ico.plus.replace('width="24" height="24"','width="16" height="16"')+' '+T[3]+'</button></div>';
+}
+const WD=["Vas","Hét","Kedd","Szer","Csüt","Pén","Szo"];
+function dateLine(s,n){const d=s.date?new Date(s.date+"T12:00"):null;
+  return (d&&!isNaN(d)?WD[d.getDay()]+' · '+d.toLocaleDateString("hu-HU",{year:"numeric",month:"short",day:"numeric"}):'Dátum megadása')+' · '+n+' dal'}
 const fmtDate=s=>{if(!s)return"";const d=new Date(s+"T12:00");return isNaN(d)?s:d.toLocaleDateString("hu-HU",{month:"long",day:"numeric",weekday:"long"})};
 const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
@@ -475,7 +504,7 @@ function vLogin(){
 }
 function setsList(){
   const arr=sortedSets();
-  if(!arr.length) return '<div class="empty-state">Még nincs setlist.<br>Koppints a + gombra, és rakd össze a vasárnapit.</div>';
+  if(!arr.length) return emptyState("sets");
   const MON=["jan","feb","márc","ápr","máj","jún","júl","aug","szept","okt","nov","dec"];
   return '<div class="glist">'+arr.map(s=>{const n=(s.songIds||[]).filter(id=>songs.has(id)).length;
     const d=s.date?new Date(s.date+"T12:00"):null, ok=d&&!isNaN(d);
@@ -483,7 +512,7 @@ function setsList(){
 }
 function songsList(){
   const q=norm(ui.q), arr=sortedSongs().filter(s=>!q||norm(s.title+" "+s.artist).includes(q));
-  if(!songs.size) return '<div class="empty-state">Még nincs dal.<br>Koppints a + gombra az elsőhöz.</div>';
+  if(!songs.size) return emptyState("songs");
   if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
   let out="",last="";
   for(const s of arr){
@@ -526,8 +555,9 @@ function vSet(){
     const meta=over?'<div class="t2 orig">eredeti: '+esc(g.key)+'</div>':(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"");
     return '<div class="srow" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+meta+'</div>'+setTile(s,g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
   return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button></div>'+
-  '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off"><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum">'+
-  '<div class="list'+(rows?' grouped':'')+'">'+(rows||'<div class="empty-state">Üres a lista. Adj hozzá dalokat.</div>')+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button></div>'+
+  '<label class="eyebrow dateline">'+ico.cal+'<span id="s-dl">'+esc(dateLine(s,ids.length))+'</span><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum"></label>'+
+  '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off">'+
+  '<div class="list'+(rows?' grouped':'')+'">'+(rows?rows+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button>':emptyState("set"))+'</div>'+
   (ids.length?'<p class="shint">Húzd balra a kivételhez. A ≡ jelet megfogva rendezheted a sorrendet. A hangnemre koppintva átírhatod erre az alkalomra.</p>':"")+
   ('<div class="card" style="margin-top:28px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
   '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
@@ -755,7 +785,7 @@ document.addEventListener("input",e=>{
 document.addEventListener("change",e=>{
   const t=e.target, s=ui.view==="set"&&setlists.get(ui.id); if(!s) return;
   if(t.id==="s-name") put("setlists",s.id,{...s,name:t.value.trim()||"Névtelen setlist",updatedAt:Date.now()});
-  if(t.id==="s-date") put("setlists",s.id,{...s,date:t.value,updatedAt:Date.now()});
+  if(t.id==="s-date"){put("setlists",s.id,{...s,date:t.value,updatedAt:Date.now()});const l=$("#s-dl");if(l)l.textContent=dateLine({...s,date:t.value},(s.songIds||[]).filter(x=>songs.has(x)).length)}
 });
 document.addEventListener("keydown",e=>{
   if(ui.view!=="stage"||ui.stageLib||ui.stageKey) return;

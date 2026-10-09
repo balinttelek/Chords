@@ -1,7 +1,7 @@
 // Számkotta service worker: the app works offline; song data syncs through Supabase when online.
-const VERSION = "szk-v22";
+const VERSION = "szk-v23";
 const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./songs-seed.json",
-  "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png"];
+  "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
