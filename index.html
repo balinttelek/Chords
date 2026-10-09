@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Számkotta</title>
+<title>Chords</title>
 <meta name="description" content="Nashville számkották és setlistek színpadra">
 <meta name="theme-color" content="#F3F4F1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121315" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Számkotta">
+<meta name="apple-mobile-web-app-title" content="Chords">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png?v=2">
 <link rel="icon" href="icons/icon-192.png">
@@ -496,8 +496,8 @@ function acct(){
   return '<div class="acct">'+esc(auth.email||"")+' · <button data-act="logout">Kilépés</button></div>';
 }
 function vLogin(){
-  if(!API) return '<div class="wrap"><h1 class="h1">Számkotta</h1><div class="empty-state">Az app még nincs összekötve az adatbázissal.</div></div>';
-  return '<div class="wrap"><img class="brand" src="icons/icon-180.png" alt="" width="72" height="72"><h1 class="h1">Számkotta</h1><p class="sub">Lépj be a fiókoddal. Ezután a dalok offline is elérhetők.</p>'+
+  if(!API) return '<div class="wrap"><h1 class="h1">Chords</h1><div class="empty-state">Az app még nincs összekötve az adatbázissal.</div></div>';
+  return '<div class="wrap"><img class="brand" src="icons/icon-180.png" alt="" width="72" height="72"><h1 class="h1">Chords</h1><p class="sub">Lépj be a fiókoddal. Ezután a dalok offline is elérhetők.</p>'+
   '<form id="loginForm" class="card"><div class="field"><label for="l-email">E-mail</label><input id="l-email" type="email" autocomplete="username" autocapitalize="off" required value="'+esc(ui.login.email)+'"></div><div class="field"><label for="l-pw">Jelszó</label><input id="l-pw" type="password" autocomplete="current-password" required></div></form>'+
   (ui.login.err?'<p class="err">'+esc(ui.login.err)+'</p>':'')+
   '<button class="cta static" form="loginForm" type="submit"'+(ui.login.busy?" disabled":"")+'>'+(ui.login.busy?"Belépés…":"Belépés")+'</button></div>';
