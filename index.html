@@ -174,6 +174,20 @@ html{background:var(--bg)}
 .sfront .main{flex:1;min-width:0}
 .grip{width:40px;height:44px;display:grid;place-items:center;color:var(--muted);touch-action:none;flex:none;cursor:grab}
 .shint{color:var(--muted);font-size:13px;text-align:center;margin:12px 8px 0;line-height:1.4}
+/* setlist as one grouped card: hairline rows, quiet numbers, the key chip tells set-only keys (filled) from the song's own (outlined) */
+.list.grouped{gap:0;background:var(--surface);border-radius:16px}
+.grouped .srow{border-radius:0}
+.grouped .srow:first-child,.grouped .srow:first-child .sfront{border-radius:16px 16px 0 0}
+.grouped .sfront{border-radius:0;min-height:64px;padding:8px 2px 8px 16px}
+.grouped .srow+.srow .sfront{box-shadow:inset 0 1px 0 var(--line)}
+.grouped .srow.dragging{border-radius:14px}.grouped .srow.dragging .sfront{border-radius:14px;box-shadow:none}
+.grouped .addrow{border:0;border-top:1px solid var(--line);border-radius:0 0 16px 16px;justify-content:flex-start;padding:0 16px;height:56px;gap:14px}
+.grouped+.shint{text-align:left;margin:12px 16px 0}
+.snum{width:18px;flex:none;color:var(--muted);font-family:var(--display);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+.t2.orig{color:var(--accent);font-weight:600;font-size:13px}
+.kchip{flex:none;min-width:48px;height:36px;padding:0 10px;border-radius:10px;box-sizing:border-box;background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);font-family:var(--display);font-weight:800;font-size:17px;color:var(--ink)}
+.kchip.over{box-shadow:none}
+.kchip.empty{color:var(--muted);font-weight:600}
 .toast{display:flex;align-items:center;gap:14px}
 .toast[hidden]{display:none}
 .kbtn{border:0;cursor:pointer}
@@ -414,7 +428,7 @@ function nextSunday(){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7
 const fmtDate=s=>{if(!s)return"";const d=new Date(s+"T12:00");return isNaN(d)?s:d.toLocaleDateString("hu-HU",{month:"long",day:"numeric",weekday:"long"})};
 const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="tile kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
+const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="kchip kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
 const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
@@ -487,11 +501,12 @@ function vSet(){
   const s=setlists.get(ui.id); if(!s){ui.view="home";return vHome()}
   const ids=(s.songIds||[]).filter(id=>songs.has(id));
   const rows=ids.map((id,i)=>{const g=songs.get(id);
-    const lead='<span class="tile num">'+(i+1)+'</span>';
-    return '<div class="srow" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"")+'</div>'+setTile(s,g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
+    const lead='<span class="snum">'+(i+1)+'</span>', over=s.keys&&s.keys[id]&&s.keys[id]!==g.key&&g.key;
+    const meta=over?'<div class="t2 orig">eredeti: '+esc(g.key)+'</div>':(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"");
+    return '<div class="srow" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+meta+'</div>'+setTile(s,g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
   return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button></div>'+
   '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off"><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum">'+
-  '<div class="list">'+(rows||'<div class="empty-state">Üres a lista. Adj hozzá dalokat.</div>')+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button></div>'+
+  '<div class="list'+(rows?' grouped':'')+'">'+(rows||'<div class="empty-state">Üres a lista. Adj hozzá dalokat.</div>')+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button></div>'+
   (ids.length?'<p class="shint">Húzd balra a kivételhez. A ≡ jelet megfogva rendezheted a sorrendet. A hangnemre koppintva átírhatod erre az alkalomra.</p>':"")+
   ('<div class="card" style="margin-top:28px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
   '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
@@ -818,7 +833,7 @@ function saveOrder(ids){const s=setlists.get(ui.id);if(s)put("setlists",s.id,{..
 function quiet(){suppressClick=true;setTimeout(()=>suppressClick=false,400)}
 function startDrag(){
   const g=gest; if(!g) return; clearTimeout(g.lp); g.mode="drag";
-  g.rows=[...document.querySelectorAll(".srow")]; g.h=g.row.getBoundingClientRect().height+8; g.target=g.i;
+  g.rows=[...document.querySelectorAll(".srow")]; g.h=g.row.getBoundingClientRect().height+(parseFloat(getComputedStyle(g.row.parentNode).rowGap)||0); g.target=g.i;
   g.row.classList.add("dragging"); try{g.row.setPointerCapture(g.id)}catch(_){}
   if(navigator.vibrate) navigator.vibrate(10);
 }
