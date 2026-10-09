@@ -60,11 +60,11 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .ic:active{background:var(--sunk)}
 .ic.del{color:var(--danger)}
 .ic[disabled]{opacity:.25}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:8px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);-webkit-transform:translateZ(0);transform:translateZ(0);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:8px}
 .tabs .tab{flex:1;max-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:10px}
 .tabs .tab[aria-pressed="true"]{color:var(--accent)}
-.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(46,140,163,.30)}
-.cta{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(46,140,163,.28)}
+.fab{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(46,140,163,.30)}
+.cta{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(46,140,163,.28)}
 .titlein{font-family:var(--display);font-stretch:112%;font-size:30px;font-weight:800;letter-spacing:-.4px;border:0;background:none;outline:none;width:100%;padding:0;margin:6px 0 2px}
 .datein{border:0;background:none;color:var(--muted);font-size:16px;padding:0;margin-bottom:18px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
@@ -116,8 +116,11 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .st-top .info span{color:var(--smuted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .sbtn{min-width:44px;height:36px;padding:0 12px;border-radius:12px;background:var(--sbtn);color:var(--sfg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-family:var(--display)}
 .st-area{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;padding-inline:8px}
+.stage .sheet{z-index:41;color:var(--ink)}
+.sbtn.slib{gap:6px;flex:none;max-width:none}
 .stage .sheet-bg{z-index:40}.stage .ksheet{z-index:41;color:var(--ink)}
 .sbtn.skey{background:var(--sacc);color:#04161b;min-width:48px;font-size:16px}
+.sbar{position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30;-webkit-transform:translateZ(0);transform:translateZ(0);pointer-events:none}
 .st-zone{position:absolute;top:0;bottom:0;width:50%;z-index:2}
 .st-area{touch-action:none}
 .st-card{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-inline:8px;background:var(--sbg);will-change:transform;transform-origin:50% 90%}
@@ -129,7 +132,7 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 @keyframes cardIn{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion: reduce){.st-card.enter{animation:none}}
 .st-zone.l{left:0}.st-zone.r{right:0}
-.st-bot{display:flex;justify-content:space-between;gap:12px;padding:4px 14px calc(8px + env(safe-area-inset-bottom,0px));color:var(--smuted);font-size:14px}
+.st-bot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 10px calc(8px + env(safe-area-inset-bottom,0px));color:var(--smuted);font-size:14px}
 .st-bot span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48%}
 .st-bot .nx{color:var(--sfg);font-weight:600;display:flex;gap:.35em;justify-content:flex-end;flex:1;min-width:0;max-width:none}
 .st-bot span:first-child{max-width:32%;flex:none}
@@ -188,6 +191,7 @@ html{background:var(--bg)}
 </head>
 <body>
 <div id="app"></div>
+<div class="sbar" aria-hidden="true"></div>
 <div id="toast" class="toast" hidden></div>
 <script>
 (function(){
@@ -394,7 +398,7 @@ const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="tile kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
-const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
+const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
 /* ---------- views ---------- */
 function tabs(){
@@ -505,7 +509,16 @@ function vStage(){
   '<div class="info"><b>'+(st.list.length>1?(st.i+1)+"/"+st.list.length+"  ":"")+esc(s.title)+'</b><span>'+esc(sub)+'</span></div>'+
   '<button class="sbtn skey" data-act="stagekey" aria-label="Hangnem váltása">'+esc(shownKey||"Key")+'</button><button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"☾":"☀")+'</button></div>'+
   '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+stageChart(id,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
-  '<div class="st-bot"><span>'+(prev?"‹ "+esc(prev.title):"")+'</span><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div>'+(ui.stageKey?vStageKey(id,s,shownKey):"")+'</div>';
+  '<div class="st-bot"><button class="sbtn slib" data-act="stagelib">'+ico.search+' Dalok</button><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div>'+(ui.stageKey?vStageKey(id,s,shownKey):"")+(ui.stageLib?vStageLib():"")+'</div>';
+}
+function vStageLib(){
+  return '<div class="sheet-bg" data-act="goback"></div><div class="sheet" role="dialog" aria-label="Daltár"><div class="shead"><div class="top"><span style="font-weight:700">Daltár</span><button class="link" data-act="goback">Mégse</button></div>'+
+  '<label class="search">'+ico.search+'<input id="lq" type="search" placeholder="Melyik dal jön?" value="'+esc(ui.lq||"")+'" autocomplete="off"></label></div><div class="inner"><div id="libList">'+libList()+'</div></div></div>';
+}
+function libList(){
+  const st=ui.stage, q=norm(ui.lq||""), inList=new Set(st.list), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+g.artist).includes(q));
+  if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
+  return '<div class="list">'+arr.map(g=>'<button class="row" data-act="libpick" data-id="'+g.id+'">'+tile(g)+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(inList.has(g.id)?'<div class="t2">Már a listában van, odaugrik</div>':'')+'</div><span class="chev">'+ico.chev+'</span></button>').join("")+'</div>';
 }
 function vStageKey(id,s,cur){
   const st=ui.stage;
@@ -555,7 +568,7 @@ function step(d){
 }
 let cd=null;
 document.addEventListener("pointerdown",e=>{
-  if(ui.view!=="stage"||flying||ui.stageKey||e.clientX<24||!e.target.closest("#stArea")) return;
+  if(ui.view!=="stage"||flying||ui.stageKey||ui.stageLib||e.clientX<24||!e.target.closest("#stArea")) return;
   cd={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId,on:false,dx:0};
 });
 document.addEventListener("pointermove",e=>{
@@ -585,7 +598,7 @@ function render(){
   if(!auth){$("#app").innerHTML=vLogin();document.body.style.overflow="";return}
   const v=ui.view;
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
-  document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor||ui.stageKey)?"hidden":"";
+  document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor||ui.stageKey||ui.stageLib)?"hidden":"";
   if(v==="stage"){fit();requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit)}
 }
 function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
@@ -632,6 +645,12 @@ document.addEventListener("click",e=>{
     case "playsong": push(); startStage([ui.id],0); break;
     case "exitstage": history.back(); break;
     case "stagekey": push(); ui.stageKey=true; render(); break;
+    case "stagelib": push(); ui.stageLib=true; ui.lq=""; render(); setTimeout(()=>{const i=$("#lq");if(i)i.focus()},250); break;
+    case "libpick": {const st=ui.stage; if(!st)break; let k=st.list.indexOf(id);
+      if(k<0){k=st.i+1; st.list.splice(k,0,id);
+        const sl=st.setId&&setlists.get(st.setId);
+        if(sl){const ids=(sl.songIds||[]).filter(x=>songs.has(x)), cur=st.list[st.i], at=ids.indexOf(cur); ids.splice(at<0?ids.length:at+1,0,id); put("setlists",sl.id,{...sl,songIds:ids,updatedAt:Date.now()})}}
+      st.i=k; st.enter=1; history.back()} break;
     case "stagepick": {const st=ui.stage; if(!st)break; const sid=st.list[st.i], s=songs.get(sid), v=b.dataset.v;
       if(s&&v===s.key) delete st.keys[sid]; else st.keys[sid]=v;
       const sl=st.setId&&setlists.get(st.setId);
@@ -651,6 +670,7 @@ document.addEventListener("input",e=>{
   const t=e.target;
   if(t.id==="q"){ui.q=t.value;$("#songList").innerHTML=songsList()}
   else if(t.id==="pq"){ui.pq=t.value;$("#pickList").innerHTML=pickList(setlists.get(ui.id))}
+  else if(t.id==="lq"){ui.lq=t.value;$("#libList").innerHTML=libList()}
   else if(ui.view==="edit"&&(t.id==="f-body"||t.id==="f-key")){readDraft();$("#preview").innerHTML=chartHTML(ui.draft.body,ui.draft.key,false)}
 });
 document.addEventListener("change",e=>{
@@ -659,7 +679,7 @@ document.addEventListener("change",e=>{
   if(t.id==="s-date") put("setlists",s.id,{...s,date:t.value,updatedAt:Date.now()});
 });
 document.addEventListener("keydown",e=>{
-  if(ui.view!=="stage") return;
+  if(ui.view!=="stage"||ui.stageLib||ui.stageKey) return;
   if(["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(e.key)){e.preventDefault();step(1)}
   else if(["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(e.key)){e.preventDefault();step(-1)}
   else if(e.key==="Escape"){document.querySelector('[data-act="exitstage"]')?.click()}
@@ -674,6 +694,7 @@ function push(){try{history.pushState({szk:1},"")}catch(_){}}
 try{history.replaceState({szk:0},"")}catch(_){}
 function goHome(){const y=ui.homeY||0;go("home");requestAnimationFrame(()=>window.scrollTo(0,y))}
 function backAction(){
+  if(ui.stageLib){ui.stageLib=false;render();return}
   if(ui.stageKey){ui.stageKey=false;render();return}
   if(ui.keyFor){ui.keyFor=null;render();return}
   if(ui.picker){ui.picker=false;render();return}
@@ -682,7 +703,7 @@ function backAction(){
   if(ui.view!=="home") goHome();
 }
 window.addEventListener("popstate",()=>{if(ignorePop){ignorePop=false;return}backAction()});
-const canGoBack=()=>ui.view!=="home"||ui.picker||ui.keyFor||ui.stageKey;
+const canGoBack=()=>ui.view!=="home"||ui.picker||ui.keyFor||ui.stageKey||ui.stageLib;
 /* fallback edge swipe, for when the system gesture is not available */
 let edge=null;
 document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=(e.touches.length===1&&t.clientX<24&&canGoBack())?{x:t.clientX,y:t.clientY,dx:0,on:false}:null},{passive:true});
