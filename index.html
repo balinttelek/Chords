@@ -211,6 +211,7 @@ html{background:var(--bg)}
 .kopt{height:58px;border-radius:14px;background:var(--surface);font-family:var(--display);font-weight:700;font-size:22px;position:relative}
 .kopt.orig::after{content:"eredeti";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
 .kopt.on{background:var(--accent);color:var(--accent-ink)}
+.kopt{transition:transform .08s,background-color .08s;touch-action:manipulation}.kopt:active{transform:scale(.95)}
 .kopt.on.orig::after{color:inherit}
 .kopt.base::after{content:"setlist";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
 .kopt.on.base::after{color:inherit}
@@ -641,6 +642,9 @@ function endCard(e){
 }
 document.addEventListener("pointerup",endCard);
 document.addEventListener("pointercancel",endCard);
+/* light the tapped key at once, then close the sheet a beat later so the choice is seen */
+function markKey(b){const g=b.closest(".kgrid");if(g)g.querySelectorAll(".kopt.on").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
+let keyClosing=0;function closeKeySoon(){clearTimeout(keyClosing);keyClosing=setTimeout(()=>history.back(),180)}
 function startStage(list,i,keys,setId){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},base:{...(keys||{})},setId:setId||null,from:{view:ui.view,id:ui.id}};ui.view="stage";render();settleStage();lockScreen()}
 /* on entry iOS still shifts the layout for a few frames (safe-area insets, fonts); keep the chart hidden until the area stops changing so it appears once, at its final size */
 function settleStage(){
@@ -709,7 +713,7 @@ document.addEventListener("click",e=>{
     case "closekey": history.back(); break;
     case "pickkey": {const g=songs.get(ui.keyFor),keys={...(set.keys||{})};
       if(!g||b.dataset.v===g.key) delete keys[ui.keyFor]; else keys[ui.keyFor]=b.dataset.v;
-      put("setlists",set.id,{...set,keys,updatedAt:Date.now()}); history.back()} break;
+      markKey(b); put("setlists",set.id,{...set,keys,updatedAt:Date.now()}); closeKeySoon()} break;
     case "pick": {const ids=[...(set.songIds||[])].filter(x=>songs.has(x));const k=ids.indexOf(id);
       if(k>=0) ids.splice(k,1); else ids.push(id);
       put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});
@@ -727,7 +731,7 @@ document.addEventListener("click",e=>{
       st.i=k; st.enter=1; history.back()} break;
     case "stagepick": {const st=ui.stage; if(!st)break; const sid=st.list[st.i], s=songs.get(sid), v=b.dataset.v;
       if(s&&v===s.key&&!st.base[sid]) delete st.keys[sid]; else st.keys[sid]=v;
-      history.back()} break;
+      markKey(b); closeKeySoon()} break;
     case "goback": history.back(); break;
     case "prev": step(-1); break;
     case "next": step(1); break;
