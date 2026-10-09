@@ -599,7 +599,15 @@ function render(){
   const v=ui.view;
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
   document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor||ui.stageKey||ui.stageLib)?"hidden":"";
-  if(v==="stage"){fit();requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit)}
+  if(v==="stage"){fit();requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);watchArea()}
+  else if(areaRO) areaRO.disconnect();
+}
+/* iOS applies the safe-area insets a moment after the stage opens without firing "resize", so the chart was fitted to a too-tall area; refit whenever the area's real size changes */
+let areaRO=null, areaSize="";
+function watchArea(){
+  const a=$("#stArea"); if(!a||!("ResizeObserver" in window)) return;
+  if(!areaRO) areaRO=new ResizeObserver(()=>{const el=$("#stArea");if(!el)return;const s=el.clientWidth+"x"+el.clientHeight;if(s!==areaSize){areaSize=s;fit()}});
+  areaRO.disconnect(); areaSize=a.clientWidth+"x"+a.clientHeight; areaRO.observe(a);
 }
 function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
 
