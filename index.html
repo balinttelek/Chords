@@ -2,8 +2,11 @@
 <html lang="hu">
 <head>
 <meta charset="utf-8">
-<style>/* launch screen: one brand color in both modes, because iOS keeps only one startup image */
-html{background:#2E8CA3}#splash{background:#2E8CA3}#splash .c1,#splash .c2{stroke:#FFFFFF}</style>
+<style>/* launch screen: no iOS startup image (iOS keeps only one, so it always clashed with one mode);
+   iOS opens on plain black or white by mode, so the splash starts on exactly that color and the logo fades in */
+html{background:#000}#splash{background:#000}#splash .c1{stroke:#73C4D6}#splash .c2{stroke:#F2F2EE}
+@media (prefers-color-scheme: light){html{background:#fff}#splash{background:#fff}#splash .c1{stroke:#2E8CA3}#splash .c2{stroke:#17191C}}
+#splash svg{animation:splashIn .3s ease-out both}@keyframes splashIn{from{opacity:0;transform:scale(.92)}}</style>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Chords</title>
 <meta name="description" content="Nashville számkották és setlistek színpadra">
@@ -14,16 +17,6 @@ html{background:#2E8CA3}#splash{background:#2E8CA3}#splash .c1,#splash .c2{strok
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Chords">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1125x2436.png">
-<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1170x2532.png">
-<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1179x2556.png">
-<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1206x2622.png">
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/b-828x1792.png">
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1242x2688.png">
-<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1284x2778.png">
-<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1290x2796.png">
-<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/b-1320x2868.png">
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/b-750x1334.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png?v=2">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
