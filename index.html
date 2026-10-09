@@ -184,6 +184,8 @@ html{background:var(--bg)}
 .kopt.orig::after{content:"eredeti";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
 .kopt.on{background:var(--accent);color:var(--accent-ink)}
 .kopt.on.orig::after{color:inherit}
+.kopt.base::after{content:"setlist";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
+.kopt.on.base::after{color:inherit}
 .kopt .cp{position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
 .kopt.on .cp{color:inherit}
 .chart .kbig{grid-column:1/-1;font-size:max(1em,64px);line-height:1;margin-bottom:.22em;display:flex;align-items:baseline;gap:.25em}
@@ -386,12 +388,17 @@ function cell(t,key,letters,to){
   const txt=letters?(toLetter(t,shown)||t):t;
   return {cls:"",html:fmtNum(txt)};
 }
+/* the setlist key is the base the band plays in; a stage change on top of it is a capo shape */
+function korig(key,ref,to){const base=ref||key;
+  if(to===base) return 'eredeti: '+esc(key);
+  const c=capoFor(base,to);return (base!==key?'setlist: ':'eredeti: ')+esc(base)+(c?' · capo '+c:'')}
+const stageBase=(st,id)=>(st.base&&st.base[id])||(songs.get(id)||{}).key||"";
 function chartHTML(body,key,letters,opt){
   opt=opt||{}; const to=opt.to&&opt.to!==key?opt.to:"";
   const secs=parse(body);
   if(!secs.length) return '<div class="empty-state">Még nincs kotta ehhez a dalhoz.</div>';
   const shown=to||key;
-  const kb=opt.bigKey&&shown?'<div class="kbig"><span class="klbl">Key</span>'+esc(shown)+(to&&key?'<span class="korig">eredeti: '+esc(key)+(capoFor(key,to)?' · capo '+capoFor(key,to):'')+'</span>':'')+'</div>':'';
+  const kb=opt.bigKey&&shown?'<div class="kbig"><span class="klbl">Key</span>'+esc(shown)+(to&&key?'<span class="korig">'+korig(key,opt.ref,to)+'</span>':'')+'</div>':'';
   return '<div class="chart">'+kb+secs.map(s=>{
     const n=Math.max(1,...s.rows.map(r=>r.length));
     const rows=s.rows.map(r=>r.map((t,i)=>{const c=cell(t,key,letters,to);return '<span class="t'+(i===0?" first":"")+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join("")).join("");
@@ -532,14 +539,14 @@ function libList(){
   return '<div class="list">'+arr.map(g=>'<button class="row" data-act="libpick" data-id="'+g.id+'">'+tile(g)+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(inList.has(g.id)?'<div class="t2">Már a listában van, odaugrik</div>':'')+'</div><span class="chev">'+ico.chev+'</span></button>').join("")+'</div>';
 }
 function vStageKey(id,s,cur){
-  const st=ui.stage;
+  const st=ui.stage, base=stageBase(st,id), fromSet=base!==s.key;
   return '<div class="sheet-bg" data-act="goback"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(s.title)+'</span><button class="link" data-act="goback">Kész</button></div>'+
-  '<p class="sub" style="margin-bottom:12px">'+(st.setId?'Erre a setlistre menti':'Csak most, a színpadi nézetben')+(s.key?' · eredeti: '+esc(s.key):'')+(capoFor(s.key,cur)?' · most: capo '+capoFor(s.key,cur):'')+'. A számok nem változnak, a betűs akkordok igen.</p>'+
-  '<div class="kgrid">'+KEY12.map(k=>{const c=capoFor(s.key,k);return '<button class="kopt'+(k===cur?" on":"")+(k===s.key?" orig":"")+'" data-act="stagepick" data-v="'+k+'">'+k+(c?'<span class="cp">capo '+c+'</span>':'')+'</button>'}).join("")+'</div></div>';
+  '<p class="sub" style="margin-bottom:12px">Csak most, a színpadi nézetben'+(base?' · '+(fromSet?'setlist: ':'eredeti: ')+esc(base):'')+(capoFor(base,cur)?' · most: capo '+capoFor(base,cur):'')+'. A számok nem változnak, a betűs akkordok igen.</p>'+
+  '<div class="kgrid">'+KEY12.map(k=>{const c=capoFor(base,k);return '<button class="kopt'+(k===cur?" on":"")+(k===base?(fromSet?" base":" orig"):"")+'" data-act="stagepick" data-v="'+k+'">'+k+(c?'<span class="cp">capo '+c+'</span>':'')+'</button>'}).join("")+'</div></div>';
 }
 function stageChart(id,cid){
   const st=ui.stage, s=songs.get(id)||{body:""};
-  return chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],bigKey:true}).replace('class="chart"','id="'+cid+'" class="chart"');
+  return chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],ref:st.base&&st.base[id],bigKey:true}).replace('class="chart"','id="'+cid+'" class="chart"');
 }
 function backCard(d){
   const st=ui.stage, nid=st.list[st.i+d]; if(!nid) return "";
@@ -602,7 +609,7 @@ function endCard(e){
 }
 document.addEventListener("pointerup",endCard);
 document.addEventListener("pointercancel",endCard);
-function startStage(list,i,keys,setId){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},setId:setId||null,from:{view:ui.view,id:ui.id}};ui.view="stage";render();settleStage();lockScreen()}
+function startStage(list,i,keys,setId){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},base:{...(keys||{})},setId:setId||null,from:{view:ui.view,id:ui.id}};ui.view="stage";render();settleStage();lockScreen()}
 /* on entry iOS still shifts the layout for a few frames (safe-area insets, fonts); keep the chart hidden until the area stops changing so it appears once, at its final size */
 function settleStage(){
   const a=$("#stArea"); if(!a) return; a.classList.add("settling");
@@ -685,9 +692,7 @@ document.addEventListener("click",e=>{
         if(sl){const ids=(sl.songIds||[]).filter(x=>songs.has(x)), cur=st.list[st.i], at=ids.indexOf(cur); ids.splice(at<0?ids.length:at+1,0,id); put("setlists",sl.id,{...sl,songIds:ids,updatedAt:Date.now()})}}
       st.i=k; st.enter=1; history.back()} break;
     case "stagepick": {const st=ui.stage; if(!st)break; const sid=st.list[st.i], s=songs.get(sid), v=b.dataset.v;
-      if(s&&v===s.key) delete st.keys[sid]; else st.keys[sid]=v;
-      const sl=st.setId&&setlists.get(st.setId);
-      if(sl){const keys={...(sl.keys||{})}; if(st.keys[sid]) keys[sid]=st.keys[sid]; else delete keys[sid]; put("setlists",sl.id,{...sl,keys,updatedAt:Date.now()})}
+      if(s&&v===s.key&&!st.base[sid]) delete st.keys[sid]; else st.keys[sid]=v;
       history.back()} break;
     case "goback": history.back(); break;
     case "prev": step(-1); break;
