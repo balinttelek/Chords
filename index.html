@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="hu">
+<html lang="hu" style="background:#121315">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -26,7 +26,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500..800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500..800&family=Figtree:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: one calm column with a bottom tab bar; key tiles anchor every song row; the stage view is a separate black room that fits each chart as large as the phone allows. */
 :root{
@@ -1038,7 +1038,7 @@ setInterval(()=>{if(document.visibilityState==="visible"&&ui.view!=="edit")sync(
 render(); sync();
 /* hold the launch screen briefly, then fade it out with the logo easing forward */
 (()=>{const s=document.getElementById("splash");if(!s)return;const t0=performance.timeOrigin?Date.now()-performance.now():Date.now();
-  const hide=()=>{s.style.opacity="0";const g=s.querySelector("svg");if(g)g.style.transform="scale(1.12)";setTimeout(()=>s.remove(),380)};
+  const hide=()=>{document.documentElement.style.removeProperty("background");s.style.opacity="0";const g=s.querySelector("svg");if(g)g.style.transform="scale(1.12)";setTimeout(()=>s.remove(),380)};
   setTimeout(hide,Math.max(0,700-(Date.now()-t0)))})();
 if("serviceWorker" in navigator) window.addEventListener("load",()=>{
   const hadSW=!!navigator.serviceWorker.controller;
