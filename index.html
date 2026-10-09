@@ -184,6 +184,8 @@ html{background:var(--bg)}
 .kopt.orig::after{content:"eredeti";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
 .kopt.on{background:var(--accent);color:var(--accent-ink)}
 .kopt.on.orig::after{color:inherit}
+.kopt .cp{position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
+.kopt.on .cp{color:inherit}
 .chart .kbig{grid-column:1/-1;font-size:max(1em,64px);line-height:1;margin-bottom:.22em;display:flex;align-items:baseline;gap:.25em}
 .chart .klbl{font-family:var(--body);font-size:.26em;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sacc,var(--accent))}
 .chart .korig{font-family:var(--body);font-size:.22em;font-weight:600;color:var(--smuted,var(--muted));margin-left:.4em}
@@ -343,6 +345,8 @@ const NAT={C:0,D:2,E:4,F:5,G:7,A:9,H:11,B:10};
 const SH=["C","C#","D","D#","E","F","F#","G","G#","A","B","H"], FL=["C","Db","D","Eb","E","F","Gb","G","Ab","A","B","H"];
 const DEG=[0,2,4,5,7,9,11];
 function keyPc(k){if(!k)return null;const m=/^([A-H])([#b]?)/.exec(k);if(!m)return null;let p=NAT[m[1]];if(m[1]==="B"&&m[2]==="b")return 10;return (p+(m[2]==="#"?1:m[2]==="b"?-1:0)+12)%12}
+/* capo = semitones to climb from the played (capo) key up to the written key */
+function capoFor(orig,to){const o=keyPc(orig),t=keyPc(to);return o===null||t===null?null:(o-t+12)%12}
 const flatKey=k=>/^(F|B|Bb|Eb|Ab|Db|Gb)$/.test(k||"");
 function degName(acc,d,key){const pc=keyPc(key);const n=(pc+DEG[d-1]+(acc==="#"?1:acc==="b"?-1:0)+12)%12;return (acc==="b"||(acc!=="#"&&flatKey(key))?FL:SH)[n]}
 function numToLetter(tok,key){
@@ -387,7 +391,7 @@ function chartHTML(body,key,letters,opt){
   const secs=parse(body);
   if(!secs.length) return '<div class="empty-state">Még nincs kotta ehhez a dalhoz.</div>';
   const shown=to||key;
-  const kb=opt.bigKey&&shown?'<div class="kbig"><span class="klbl">Key</span>'+esc(shown)+(to&&key?'<span class="korig">eredeti: '+esc(key)+'</span>':'')+'</div>':'';
+  const kb=opt.bigKey&&shown?'<div class="kbig"><span class="klbl">Key</span>'+esc(shown)+(to&&key?'<span class="korig">eredeti: '+esc(key)+(capoFor(key,to)?' · capo '+capoFor(key,to):'')+'</span>':'')+'</div>':'';
   return '<div class="chart">'+kb+secs.map(s=>{
     const n=Math.max(1,...s.rows.map(r=>r.length));
     const rows=s.rows.map(r=>r.map((t,i)=>{const c=cell(t,key,letters,to);return '<span class="t'+(i===0?" first":"")+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join("")).join("");
@@ -530,8 +534,8 @@ function libList(){
 function vStageKey(id,s,cur){
   const st=ui.stage;
   return '<div class="sheet-bg" data-act="goback"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(s.title)+'</span><button class="link" data-act="goback">Kész</button></div>'+
-  '<p class="sub" style="margin-bottom:12px">'+(st.setId?'Erre a setlistre menti':'Csak most, a színpadi nézetben')+(s.key?' · eredeti: '+esc(s.key):'')+'. A számok nem változnak, a betűs akkordok igen.</p>'+
-  '<div class="kgrid">'+KEY12.map(k=>'<button class="kopt'+(k===cur?" on":"")+(k===s.key?" orig":"")+'" data-act="stagepick" data-v="'+k+'">'+k+'</button>').join("")+'</div></div>';
+  '<p class="sub" style="margin-bottom:12px">'+(st.setId?'Erre a setlistre menti':'Csak most, a színpadi nézetben')+(s.key?' · eredeti: '+esc(s.key):'')+(capoFor(s.key,cur)?' · most: capo '+capoFor(s.key,cur):'')+'. A számok nem változnak, a betűs akkordok igen.</p>'+
+  '<div class="kgrid">'+KEY12.map(k=>{const c=capoFor(s.key,k);return '<button class="kopt'+(k===cur?" on":"")+(k===s.key?" orig":"")+'" data-act="stagepick" data-v="'+k+'">'+k+(c?'<span class="cp">capo '+c+'</span>':'')+'</button>'}).join("")+'</div></div>';
 }
 function stageChart(id,cid){
   const st=ui.stage, s=songs.get(id)||{body:""};
@@ -668,7 +672,8 @@ document.addEventListener("click",e=>{
     case "pick": {const ids=[...(set.songIds||[])].filter(x=>songs.has(x));const k=ids.indexOf(id);
       if(k>=0) ids.splice(k,1); else ids.push(id);
       put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});
-      $("#pickList").innerHTML=pickList(setlists.get(set.id))} break;
+      $("#pickList").innerHTML=pickList(setlists.get(set.id));
+      {const q=$("#pq"); if(q&&q.value){q.focus();q.setSelectionRange(0,q.value.length)}}} break;
     case "playfrom": if(set){push();startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{},set.id)} break;
     case "playsong": push(); startStage([ui.id],0); break;
     case "exitstage": history.back(); break;
