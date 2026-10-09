@@ -116,6 +116,8 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .st-top .info span{color:var(--smuted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .sbtn{min-width:44px;height:36px;padding:0 12px;border-radius:12px;background:var(--sbtn);color:var(--sfg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-family:var(--display)}
 .st-area{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;padding-inline:8px}
+.stage .sheet-bg{z-index:40}.stage .ksheet{z-index:41;color:var(--ink)}
+.sbtn.skey{background:var(--sacc);color:#04161b;min-width:48px;font-size:16px}
 .st-zone{position:absolute;top:0;bottom:0;width:50%;z-index:2}
 .st-area{touch-action:none}
 .st-card{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-inline:8px;background:var(--sbg);will-change:transform;transform-origin:50% 90%}
@@ -392,7 +394,7 @@ const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="tile kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
-const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,ocr:null},extra||{});render();window.scrollTo(0,0)};
+const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
 /* ---------- views ---------- */
 function tabs(){
@@ -496,13 +498,20 @@ function vStage(){
   const st=ui.stage, id=st.list[st.i], s=songs.get(id)||{title:"?",body:""};
   const prev=st.list[st.i-1]&&songs.get(st.list[st.i-1]), next=st.list[st.i+1]&&songs.get(st.list[st.i+1]);
   const sub=[s.bpm?s.bpm+" BPM":"",s.notes].filter(Boolean).join(" · ");
+  const shownKey=(st.keys&&st.keys[id])||s.key||"";
   const nextKey=next?((st.keys&&st.keys[st.list[st.i+1]])||next.key||""):"";
   const enter=st.enter?" enter":""; st.enter=0;
   return '<div class="stage'+(prefs.light?" light":"")+'" id="stage"><div class="st-top"><button class="sbtn" data-act="exitstage">Kész</button>'+
   '<div class="info"><b>'+(st.list.length>1?(st.i+1)+"/"+st.list.length+"  ":"")+esc(s.title)+'</b><span>'+esc(sub)+'</span></div>'+
-  '<button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"Sötét":"Világos")+'</button></div>'+
+  '<button class="sbtn skey" data-act="stagekey" aria-label="Hangnem váltása">'+esc(shownKey||"Key")+'</button><button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"☾":"☀")+'</button></div>'+
   '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+stageChart(id,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
-  '<div class="st-bot"><span>'+(prev?"‹ "+esc(prev.title):"")+'</span><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div></div>';
+  '<div class="st-bot"><span>'+(prev?"‹ "+esc(prev.title):"")+'</span><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div>'+(ui.stageKey?vStageKey(id,s,shownKey):"")+'</div>';
+}
+function vStageKey(id,s,cur){
+  const st=ui.stage;
+  return '<div class="sheet-bg" data-act="goback"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(s.title)+'</span><button class="link" data-act="goback">Kész</button></div>'+
+  '<p class="sub" style="margin-bottom:12px">'+(st.setId?'Erre a setlistre menti':'Csak most, a színpadi nézetben')+(s.key?' · eredeti: '+esc(s.key):'')+'. A számok nem változnak, a betűs akkordok igen.</p>'+
+  '<div class="kgrid">'+KEY12.map(k=>'<button class="kopt'+(k===cur?" on":"")+(k===s.key?" orig":"")+'" data-act="stagepick" data-v="'+k+'">'+k+'</button>').join("")+'</div></div>';
 }
 function stageChart(id,cid){
   const st=ui.stage, s=songs.get(id)||{body:""};
@@ -546,7 +555,7 @@ function step(d){
 }
 let cd=null;
 document.addEventListener("pointerdown",e=>{
-  if(ui.view!=="stage"||flying||!e.target.closest("#stArea")) return;
+  if(ui.view!=="stage"||flying||ui.stageKey||e.clientX<24||!e.target.closest("#stArea")) return;
   cd={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId,on:false,dx:0};
 });
 document.addEventListener("pointermove",e=>{
@@ -569,14 +578,14 @@ function endCard(e){
 }
 document.addEventListener("pointerup",endCard);
 document.addEventListener("pointercancel",endCard);
-function startStage(list,i,keys){$("#toast").hidden=true;ui.stage={list,i,keys:keys||{},from:{view:ui.view,id:ui.id}};ui.view="stage";render();lockScreen()}
+function startStage(list,i,keys,setId){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},setId:setId||null,from:{view:ui.view,id:ui.id}};ui.view="stage";render();lockScreen()}
 
 /* ---------- render ---------- */
 function render(){
   if(!auth){$("#app").innerHTML=vLogin();document.body.style.overflow="";return}
   const v=ui.view;
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
-  document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor)?"hidden":"";
+  document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor||ui.stageKey)?"hidden":"";
   if(v==="stage"){fit();requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit)}
 }
 function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
@@ -588,40 +597,47 @@ document.addEventListener("click",e=>{
   const set=ui.view==="set"?setlists.get(ui.id):null;
   switch(a){
     case "tab": ui.tab=b.dataset.v; render(); window.scrollTo(0,0); break;
-    case "home": go("home"); break;
-    case "back": {const y=ui.homeY||0;go("home");requestAnimationFrame(()=>window.scrollTo(0,y))} break;
+    case "home": case "back": history.back(); break;
     case "new":
-      if(ui.tab==="sets"){const nid=newId("l");const d=nextSunday();put("setlists",nid,{name:"Vasárnap, "+new Date(d+"T12:00").toLocaleDateString("hu-HU",{month:"long",day:"numeric"}),date:d,songIds:[],updatedAt:Date.now()});go("set",{id:nid})}
+      push(); if(ui.tab==="sets"){const nid=newId("l");const d=nextSunday();put("setlists",nid,{name:"Vasárnap, "+new Date(d+"T12:00").toLocaleDateString("hu-HU",{month:"long",day:"numeric"}),date:d,songIds:[],updatedAt:Date.now()});go("set",{id:nid})}
       else go("edit",{draft:{id:null,title:"",artist:"",key:"",bpm:"",notes:"",body:""}});
       break;
-    case "opensong": ui.homeY=window.scrollY; go("song",{id}); break;
-    case "openset": go("set",{id}); break;
-    case "edit": {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||""}})} break;
-    case "canceledit": ui.ocr=null; ui.draft.id?go("song",{id:ui.draft.id}):go("home"); break;
+    case "opensong": ui.homeY=window.scrollY; push(); go("song",{id}); break;
+    case "openset": ui.homeY=window.scrollY; push(); go("set",{id}); break;
+    case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||""}})} break;
+    case "canceledit": history.back(); break;
     case "paste": (async()=>{try{const t=await navigator.clipboard.readText();if(!t.trim())throw 0;applyImport(t,"Beillesztve. Nézd át, és ha jó, nyomd meg a Mentést.")}catch(_){ui.ocr={msg:"Nem sikerült beilleszteni. Másold ki a jegyzet szövegét, és próbáld újra.",err:1};render()}})(); break;
-    case "saveedit": {ui.ocr=null;readDraft();const d=ui.draft,sid=d.id||newId("s");put("songs",sid,{title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()});go("song",{id:sid})} break;
+    case "saveedit": {ui.ocr=null;readDraft();const d=ui.draft,isNew=!d.id,sid=d.id||newId("s");put("songs",sid,{title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()});
+      if(isNew){go("song",{id:sid})} else history.back()} break;
     case "askdel": ui.confirmDel=true; render(); break;
     case "nodel": ui.confirmDel=false; render(); break;
-    case "dodelsong": del("songs",ui.draft.id); ui.tab="songs"; go("home"); toast("Dal törölve"); break;
-    case "dodelset": del("setlists",ui.id); go("home"); toast("Setlist törölve"); break;
+    case "dodelsong": del("songs",ui.draft.id); ui.tab="songs"; ignorePop=true; history.go(-2); goHome(); toast("Dal törölve"); break;
+    case "dodelset": del("setlists",ui.id); ignorePop=true; history.back(); goHome(); toast("Setlist törölve"); break;
     case "toggleedit": ui.editSet=!ui.editSet; ui.confirmDel=false; render(); break;
     case "mv": case "rm": {const ids=(set.songIds||[]).filter(x=>songs.has(x));
       if(a==="rm") ids.splice(i,1); else {const j=i+(+b.dataset.d);[ids[i],ids[j]]=[ids[j],ids[i]]}
       put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});render()} break;
-    case "picker": ui.picker=true; ui.pq=""; render(); break;
-    case "closepicker": ui.picker=false; render(); break;
-    case "keyfor": ui.keyFor=id; render(); break;
-    case "closekey": ui.keyFor=null; render(); break;
+    case "picker": push(); ui.picker=true; ui.pq=""; render(); break;
+    case "closepicker": history.back(); break;
+    case "keyfor": push(); ui.keyFor=id; render(); break;
+    case "closekey": history.back(); break;
     case "pickkey": {const g=songs.get(ui.keyFor),keys={...(set.keys||{})};
       if(!g||b.dataset.v===g.key) delete keys[ui.keyFor]; else keys[ui.keyFor]=b.dataset.v;
-      put("setlists",set.id,{...set,keys,updatedAt:Date.now()}); ui.keyFor=null; render()} break;
+      put("setlists",set.id,{...set,keys,updatedAt:Date.now()}); history.back()} break;
     case "pick": {const ids=[...(set.songIds||[])].filter(x=>songs.has(x));const k=ids.indexOf(id);
       if(k>=0) ids.splice(k,1); else ids.push(id);
       put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});
       $("#pickList").innerHTML=pickList(setlists.get(set.id))} break;
-    case "playfrom": if(set) startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{}); break;
-    case "playsong": startStage([ui.id],0); break;
-    case "exitstage": {if(!ui.stage)break;const f=ui.stage.from;releaseScreen();ui.stage=null;go(f.view,{id:f.id})} break;
+    case "playfrom": if(set){push();startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{},set.id)} break;
+    case "playsong": push(); startStage([ui.id],0); break;
+    case "exitstage": history.back(); break;
+    case "stagekey": push(); ui.stageKey=true; render(); break;
+    case "stagepick": {const st=ui.stage; if(!st)break; const sid=st.list[st.i], s=songs.get(sid), v=b.dataset.v;
+      if(s&&v===s.key) delete st.keys[sid]; else st.keys[sid]=v;
+      const sl=st.setId&&setlists.get(st.setId);
+      if(sl){const keys={...(sl.keys||{})}; if(st.keys[sid]) keys[sid]=st.keys[sid]; else delete keys[sid]; put("setlists",sl.id,{...sl,keys,updatedAt:Date.now()})}
+      history.back()} break;
+    case "goback": history.back(); break;
     case "prev": step(-1); break;
     case "next": step(1); break;
     case "letters": prefs.letters=!prefs.letters; savePrefs(); render(); break;
@@ -651,6 +667,38 @@ document.addEventListener("keydown",e=>{
 
 let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(fit,80)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&ui.view==="stage"){wake=null;lockScreen()}});
+
+/* ---------- navigation: every screen and sheet is a history entry, so the iPhone back swipe works ---------- */
+let ignorePop=false;
+function push(){try{history.pushState({szk:1},"")}catch(_){}}
+try{history.replaceState({szk:0},"")}catch(_){}
+function goHome(){const y=ui.homeY||0;go("home");requestAnimationFrame(()=>window.scrollTo(0,y))}
+function backAction(){
+  if(ui.stageKey){ui.stageKey=false;render();return}
+  if(ui.keyFor){ui.keyFor=null;render();return}
+  if(ui.picker){ui.picker=false;render();return}
+  if(ui.view==="stage"){const f=ui.stage?ui.stage.from:{view:"home"};releaseScreen();ui.stage=null;go(f.view,{id:f.id});return}
+  if(ui.view==="edit"){ui.ocr=null;const id=ui.draft&&ui.draft.id;if(id&&songs.has(id))go("song",{id});else goHome();return}
+  if(ui.view!=="home") goHome();
+}
+window.addEventListener("popstate",()=>{if(ignorePop){ignorePop=false;return}backAction()});
+const canGoBack=()=>ui.view!=="home"||ui.picker||ui.keyFor||ui.stageKey;
+/* fallback edge swipe, for when the system gesture is not available */
+let edge=null;
+document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=(e.touches.length===1&&t.clientX<24&&canGoBack())?{x:t.clientX,y:t.clientY,dx:0,on:false}:null},{passive:true});
+document.addEventListener("touchmove",e=>{
+  if(!edge) return; const t=e.touches[0], dx=t.clientX-edge.x, dy=t.clientY-edge.y;
+  if(!edge.on){if(dx>12&&dx>Math.abs(dy)*1.5)edge.on=true;else if(Math.abs(dy)>12){edge=null;return}else return}
+  e.preventDefault(); edge.dx=Math.max(0,dx); const a=$("#app"); a.style.transition="none"; a.style.transform="translateX("+edge.dx+"px)";
+},{passive:false});
+function endEdge(commit){
+  if(!edge) return; const ed=edge; edge=null; if(!ed.on) return;
+  const a=$("#app"); quiet();
+  if(commit&&ed.dx>90){a.style.transition="transform .18s ease-out";a.style.transform="translateX(100%)";setTimeout(()=>{a.style.transition="";a.style.transform="";history.back()},170)}
+  else{a.style.transition="transform .2s ease-out";a.style.transform="";setTimeout(()=>{a.style.transition=""},200)}
+}
+document.addEventListener("touchend",()=>endEdge(true));
+document.addEventListener("touchcancel",()=>endEdge(false));
 
 /* ---------- import: Notes text or a screenshot of it ---------- */
 const KEYMAP={C:"C","C#":"C#",DB:"Db",D:"D","D#":"Eb",EB:"Eb",E:"E",F:"F","F#":"F#",GB:"Gb",G:"G","G#":"Ab",AB:"Ab",A:"A","A#":"B",BB:"B",B:"B",H:"H"};
@@ -716,7 +764,7 @@ function startDrag(){
   if(navigator.vibrate) navigator.vibrate(10);
 }
 document.addEventListener("pointerdown",e=>{
-  if(ui.view!=="set"||ui.picker||(e.button&&e.button>0)) return;
+  if(ui.view!=="set"||ui.picker||ui.keyFor||e.clientX<24||(e.button&&e.button>0)) return;
   const row=e.target.closest(".srow"); if(!row) return;
   gest={row,front:row.querySelector(".sfront"),i:+row.dataset.i,x0:e.clientX,y0:e.clientY,mode:null,id:e.pointerId,dx:0};
   if(e.target.closest(".grip")){startDrag();e.preventDefault();return}
