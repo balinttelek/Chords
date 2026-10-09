@@ -231,6 +231,11 @@ html{background:var(--bg)}
 .glist .check{margin-left:2px}
 .dstack{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;line-height:1}
 .dstack b{font-family:var(--display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.glist.sets>.row{min-height:88px;padding:14px 16px;gap:16px}
+.glist.sets .t1{font-size:18px}
+.glist.sets .t2{font-size:15px;margin-top:4px}
+.glist.sets .dstack{width:44px}
+.glist.sets .dstack b{font-size:28px}
 .dstack span{color:var(--accent);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
 .toast{display:flex;align-items:center;gap:14px}
 .toast[hidden]{display:none}
@@ -519,7 +524,7 @@ function setsList(){
   const arr=sortedSets();
   if(!arr.length) return emptyState("sets");
   const MON=["jan","feb","márc","ápr","máj","jún","júl","aug","szept","okt","nov","dec"];
-  return '<div class="glist">'+arr.map(s=>{const n=(s.songIds||[]).filter(id=>songs.has(id)).length;
+  return '<div class="glist sets">'+arr.map(s=>{const n=(s.songIds||[]).filter(id=>songs.has(id)).length;
     const d=s.date?new Date(s.date+"T12:00"):null, ok=d&&!isNaN(d);
     return '<button class="row" data-act="openset" data-id="'+s.id+'"><span class="dstack"><b>'+(ok?d.getDate():"·")+'</b><span>'+(ok?MON[d.getMonth()]:"")+'</span></span><div class="main"><div class="t1">'+esc(s.name||"Névtelen setlist")+'</div><div class="t2">'+n+' dal</div></div><span class="chev">'+ico.chev+'</span></button>'}).join("")+'</div>';
 }
