@@ -25,6 +25,7 @@
   --display:"Rubik","Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif;
   --body:"Figtree",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
   --r:16px;
+  --sab:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121315; --surface:#1C1D20; --sunk:#26282B; --ink:#F2F2EE; --muted:#9A9DA3; --line:#2E3034;
@@ -63,7 +64,7 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .ic:active{background:var(--sunk)}
 .ic.del{color:var(--danger)}
 .ic[disabled]{opacity:.25}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);-webkit-transform:translateZ(0);transform:translateZ(0);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:8px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);-webkit-transform:translateZ(0);transform:translateZ(0);border-top:1px solid var(--line);padding:6px 16px calc(6px + var(--sab));display:flex;justify-content:center;gap:8px}
 .tabs .tab{flex:1;max-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:10px}
 .tabs .tab[aria-pressed="true"]{color:var(--accent)}
 /* the account line sits just above the tab bar's top line; the bar itself is unchanged */
@@ -72,8 +73,8 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .tabs .acct{margin:0;padding:6px 0 8px;font-size:12.5px;gap:6px}
 .addcenter{display:grid;place-items:center;width:56px;height:56px;margin:18px auto 0;border-radius:18px;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 20px rgba(46,140,163,.28)}
 .addcenter:active{transform:scale(.95)}
-.fab{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(46,140,163,.30)}
-.cta{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(46,140,163,.28)}
+.fab{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;right:18px;bottom:calc(76px + var(--sab));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(46,140,163,.30)}
+.cta{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;left:16px;right:16px;bottom:calc(16px + var(--sab));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(46,140,163,.28)}
 .titlein{font-family:var(--display);font-stretch:112%;font-size:30px;font-weight:800;letter-spacing:-.4px;border:0;background:none;outline:none;width:100%;padding:0;margin:6px 0 2px}
 .datein{border:0;background:none;color:var(--muted);font-size:16px;padding:0;margin-bottom:18px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
@@ -167,7 +168,7 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 @keyframes cardIn{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion: reduce){.st-card.enter{animation:none}}
 .st-zone.l{left:0}.st-zone.r{right:0}
-.st-bot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 10px calc(8px + env(safe-area-inset-bottom,0px));color:var(--smuted);font-size:14px}
+.st-bot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 10px calc(8px + var(--sab));color:var(--smuted);font-size:14px}
 .st-bot span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48%}
 .st-bot .nx{color:var(--sfg);font-weight:600;display:flex;gap:.35em;justify-content:flex-end;flex:1;min-width:0;max-width:none}
 .st-bot span:first-child{max-width:32%;flex:none}
@@ -184,7 +185,7 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .sheet .inner{flex:1;min-height:0;padding-top:12px!important;overflow-y:auto;padding-inline:16px;padding-block:6px 40px;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
 .check{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center}
 .check.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(150px + var(--sab));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
 @media (prefers-reduced-motion: no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
 .cta.static{position:static;width:100%;margin-top:4px;box-sizing:border-box}
 .cta[disabled]{opacity:.6}
@@ -230,7 +231,7 @@ html{background:var(--bg)}
 .toast[hidden]{display:none}
 .kbtn{border:0;cursor:pointer}
 .kbtn.over{background:var(--accent);color:var(--accent-ink)}
-.ksheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--bg);border-radius:20px 20px 0 0;padding:6px 16px calc(24px + env(safe-area-inset-bottom,0px));max-width:640px;margin:0 auto;box-sizing:border-box}
+.ksheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--bg);border-radius:20px 20px 0 0;padding:6px 16px calc(24px + var(--sab));max-width:640px;margin:0 auto;box-sizing:border-box}
 .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .kopt{height:58px;border-radius:14px;background:var(--surface);font-family:var(--display);font-weight:700;font-size:22px;position:relative}
 .kopt.orig::after{content:"eredeti";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
@@ -701,9 +702,15 @@ function settleStage(){
 }
 
 /* ---------- render ---------- */
+/* iOS sometimes reports a 0 bottom inset on some screens, which shrank the tab bar there; remember the largest value seen and use it everywhere */
+let sabMax=0;
+function measureSab(){try{const d=document.createElement("div");d.style.cssText="position:fixed;left:0;bottom:0;width:1px;visibility:hidden;pointer-events:none;height:env(safe-area-inset-bottom,0px)";document.body.appendChild(d);const v=d.offsetHeight;d.remove();
+  if(v>sabMax){sabMax=v;document.documentElement.style.setProperty("--sab",v+"px")}}catch(e){}}
+window.addEventListener("resize",()=>setTimeout(measureSab,60));window.addEventListener("orientationchange",()=>{sabMax=0;setTimeout(measureSab,300)});
 function render(){
   if(!auth){$("#app").innerHTML=vLogin();document.body.style.overflow="";return}
   const v=ui.view;
+  measureSab();
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
   document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor||ui.stageKey||ui.stageLib)?"hidden":"";
   /* iOS paints the strip under the home bar with the page background, not the stage's; match it so a dark stage stays black on a light-mode phone */
