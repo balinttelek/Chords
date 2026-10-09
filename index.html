@@ -12,6 +12,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Chords">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1206x2622.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/s-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/s-1320x2868.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/s-750x1334.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png?v=2">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -266,6 +276,8 @@ html{background:var(--bg)}
 <script src="config.js"></script>
 </head>
 <body>
+<!-- launch screen: the same picture iOS shows from the startup image, then it fades into the app -->
+<div id="splash" style="position:fixed;inset:0;z-index:100;background:#121315;display:grid;place-items:center;transition:opacity .35s ease"><svg width="110" height="110" viewBox="0 0 150 150" aria-hidden="true" style="transition:transform .35s ease"><path d="M104 46a40 40 0 1 0 0 58" fill="none" stroke="#73C4D6" stroke-width="15" stroke-linecap="round"/><path d="M78 50v52M62 68h32" stroke="#F2F2EE" stroke-width="10" stroke-linecap="round"/></svg></div>
 <div id="app"></div>
 <div class="sbar" aria-hidden="true"></div>
 <div id="toast" class="toast" hidden></div>
@@ -1024,6 +1036,10 @@ window.addEventListener("offline",()=>{syncState="offline";paintStatus()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")sync()});
 setInterval(()=>{if(document.visibilityState==="visible"&&ui.view!=="edit")sync()},60000);
 render(); sync();
+/* hold the launch screen briefly, then fade it out with the logo easing forward */
+(()=>{const s=document.getElementById("splash");if(!s)return;const t0=performance.timeOrigin?Date.now()-performance.now():Date.now();
+  const hide=()=>{s.style.opacity="0";const g=s.querySelector("svg");if(g)g.style.transform="scale(1.12)";setTimeout(()=>s.remove(),380)};
+  setTimeout(hide,Math.max(0,700-(Date.now()-t0)))})();
 if("serviceWorker" in navigator) window.addEventListener("load",()=>{
   const hadSW=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadSW)showUpdate()});
