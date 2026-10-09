@@ -95,6 +95,7 @@ input,textarea,select{font:inherit;color:var(--ink)}
 /* iOS places the fixed tab bar differently on a page that doesn't scroll; keep both tabs scrollable so the bar sits the same */
 .wrap.tall{min-height:calc(100vh + 1px);box-sizing:border-box}
 .under{position:fixed;inset:0;z-index:0;background:var(--bg);overflow:hidden;pointer-events:none}
+.under .uin{padding:8px}
 .under .udim{position:absolute;inset:0;background:#000;opacity:.35}
 #app.swipefront{position:relative;z-index:1;background:var(--bg);min-height:100vh;box-shadow:-10px 0 30px rgba(0,0,0,.18)}
 .dateline{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-top:12px}
@@ -238,6 +239,7 @@ html{background:var(--bg)}
 .glist>.row{border-radius:0;background:none;min-height:64px;padding:8px 14px 8px 16px}
 .glist>.row+.row{box-shadow:inset 0 1px 0 var(--line)}
 .glist>.row:active{background:var(--sunk)}
+.noact .glist>.row:active{background:none}.noact .row:active{background:var(--surface)}.noact .sfront:active{background:var(--surface)}
 .glist .kchip{display:inline-grid;place-items:center}
 .glist .check{margin-left:2px}
 .dstack{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;line-height:1}
@@ -508,7 +510,7 @@ const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="kchip kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const chip=s=>'<span class="kchip'+(s.key?"":" empty")+'">'+esc(s.key||"–")+'</span>';
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
-const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
+const go=(view,extra)=>{noAct();Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
 /* ---------- views ---------- */
 function tabs(){
@@ -838,7 +840,9 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 let ignorePop=false;
 function push(){try{history.pushState({szk:1},"")}catch(_){}}
 try{history.replaceState({szk:0},"")}catch(_){}
-function goHome(){const y=ui.homeY||0;go("home");requestAnimationFrame(()=>window.scrollTo(0,y))}
+/* iOS can leave the last touch's press highlight on whatever row lands under the finger after a page change; mute it briefly */
+let noActT=0;function noAct(){document.body.classList.add("noact");clearTimeout(noActT);noActT=setTimeout(()=>document.body.classList.remove("noact"),900)}
+function goHome(){const y=ui.homeY||0;go("home");window.scrollTo(0,y);requestAnimationFrame(()=>window.scrollTo(0,y))}
 function backAction(){
   if(ui.stageLib){ui.stageLib=false;render();return}
   if(ui.stageKey){ui.stageKey=false;render();return}
