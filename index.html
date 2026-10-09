@@ -24,7 +24,7 @@
   --accent:#2E8CA3; --accent-ink:#FFFFFF; --accent-soft:#DCEFF3; --danger:#C93A2B;
   --display:"Rubik","Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif;
   --body:"Figtree",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-  --r:14px;
+  --r:16px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121315; --surface:#1C1D20; --sunk:#26282B; --ink:#F2F2EE; --muted:#9A9DA3; --line:#2E3034;
@@ -68,6 +68,10 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .titlein{font-family:var(--display);font-stretch:112%;font-size:30px;font-weight:800;letter-spacing:-.4px;border:0;background:none;outline:none;width:100%;padding:0;margin:6px 0 2px}
 .datein{border:0;background:none;color:var(--muted);font-size:16px;padding:0;margin-bottom:18px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+/* small uppercase line above a title, like the setlist header */
+.eyebrow{margin:12px 0 6px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eyebrow b{color:var(--accent);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.4px;text-transform:none}
+.h1.song{margin:0 0 20px}
 .chip{background:var(--surface);border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
 .chip.k{background:var(--ink);color:var(--bg);font-family:var(--display)}
 .note{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:15px;margin:0 0 14px;line-height:1.4}
@@ -488,7 +492,8 @@ function songsList(){
 function vSong(){
   const s=songs.get(ui.id); if(!s){ui.view="home";return vHome()}
   return '<div class="wrap"><div class="top"><button class="link" data-act="back">'+ico.back+' Vissza</button><button class="link" data-act="edit">Szerkesztés</button></div>'+
-  '<h1 class="h1">'+esc(s.title||"Névtelen dal")+'</h1><div class="chips">'+(s.key?'<span class="chip k">'+esc(s.key)+'</span>':'<span class="chip">Nincs hangnem</span>')+(s.bpm?'<span class="chip">'+esc(s.bpm)+' BPM</span>':"")+(s.artist?'<span class="chip">'+esc(s.artist)+'</span>':"")+'</div>'+
+  '<p class="eyebrow">'+[s.key?'<b>'+esc(s.key)+'</b>':'nincs hangnem',s.bpm?esc(s.bpm)+' BPM':'',s.artist?esc(s.artist):''].filter(Boolean).join(' · ')+'</p>'+
+  '<h1 class="h1 song">'+esc(s.title||"Névtelen dal")+'</h1>'+
   (s.notes?'<div class="note">'+esc(s.notes)+'</div>':"")+
   '<div class="reading">'+chartHTML(s.body,s.key,false)+'</div></div>'+
   '<button class="cta" data-act="playsong">'+ico.play+' Színpadi nézet</button>';
@@ -498,7 +503,7 @@ function vEdit(){
   return '<div class="wrap"><div class="top"><button class="link" data-act="canceledit">Mégse</button><button class="link" data-act="saveedit">Mentés</button></div>'+
   (d.id?'':'<div class="imp"><label class="impbtn" for="f-img">'+ico.image+' Képernyőképből</label><input id="f-img" type="file" accept="image/*" hidden><button class="impbtn" data-act="paste">'+ico.paste+' Beillesztés</button></div>'+
    (ui.ocr?'<div class="ocrmsg'+(ui.ocr.err?" bad":"")+'">'+esc(ui.ocr.msg)+'</div>':''))+
-  '<input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
+  '<p class="eyebrow">'+(d.id?'Dal szerkesztése':'Új dal')+'</p><input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
   '<div class="card" style="margin-top:12px"><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
   '<div class="field"><label for="f-key">Hangnem</label><select id="f-key"><option value="">nincs</option>'+(d.key&&!KEYS.includes(d.key)?[d.key]:[]).concat(KEYS).map(k=>'<option'+(k===d.key?" selected":"")+'>'+esc(k)+'</option>').join("")+'</select></div>'+
   '<div class="field"><label for="f-bpm">Tempó</label><input id="f-bpm" inputmode="numeric" value="'+esc(d.bpm)+'" placeholder="BPM"></div>'+
