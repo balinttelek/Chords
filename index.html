@@ -937,8 +937,15 @@ function importText(text){
   }
   return {title,key,body:body.join("\n").trim()};
 }
-function applyImport(text,msg){
-  const r=importText(text); if(!r.title&&!r.body){ui.ocr={msg:"Nem találtam szöveget a képen.",err:1};render();return}
+/* drop OCR noise: a chart line is kept only if most of its pieces look like chords, numbers or rests */
+function cleanOcrBody(body){
+  const ok=t=>/^\(?[b#]?[1-7]/.test(t)||/^\(?[A-H][#b]?(m|maj|min|dim|aug|sus|add|\d|\/|\)|-|\+)*/.test(t)&&/^\(?[A-H][#b]?[^A-Za-z]*(m|maj|min|dim|aug|sus|add)?[^A-Za-z]*\)?$/.test(t)||/^[.|%x×]|^x\d$/.test(t);
+  return String(body||"").split("\n").filter(l=>{const s=l.trim(); if(!s) return true;
+    const c=s.indexOf(":"), rest=(c>=0?s.slice(c+1):s).trim(); if(c>=0&&!rest) return true;
+    const toks=rest.split(/\s+/); return toks.filter(ok).length*2>toks.length}).join("\n").replace(/\n{3,}/g,"\n\n").trim();
+}
+function applyImport(text,msg,ocr){
+  const r=importText(text); if(ocr&&r.body) r.body=cleanOcrBody(r.body); if(!r.title&&!r.body){ui.ocr={msg:"Nem találtam szöveget a képen.",err:1};render();return}
   readDraft(); Object.assign(ui.draft,{title:r.title||ui.draft.title,key:r.key||ui.draft.key,body:r.body||ui.draft.body});
   ui.ocr={msg}; render();
 }
@@ -949,8 +956,10 @@ function loadTess(){
 }
 async function prepImage(file){
   const url=URL.createObjectURL(file); const img=new Image(); img.src=url; await img.decode();
-  const sc=img.width<1400?2:1, c=document.createElement("canvas"); c.width=img.width*sc; c.height=img.height*sc;
-  const x=c.getContext("2d"); x.filter="grayscale(1) contrast(1.15)"; x.drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+  /* a tall phone screenshot carries the app's own buttons at the top and bottom (Notes' toolbar icons were being read as letters); leave those strips out */
+  const tall=img.height>img.width*1.6, cy=tall?Math.round(img.height*.09):0, ch=img.height-(tall?Math.round(img.height*.1):0)-cy;
+  const sc=img.width<1400?2:1, c=document.createElement("canvas"); c.width=img.width*sc; c.height=ch*sc;
+  const x=c.getContext("2d"); x.filter="grayscale(1) contrast(1.15)"; x.drawImage(img,0,cy,img.width,ch,0,0,c.width,c.height); URL.revokeObjectURL(url);
   return c;
 }
 async function ocrFile(file){
@@ -960,7 +969,7 @@ async function ocrFile(file){
     const w=await Tesseract.createWorker("eng+hun");
     await w.setParameters({tessedit_pageseg_mode:"6"});
     const {data}=await w.recognize(canvas); await w.terminate();
-    applyImport(data.text,"Kész. A felismerés nem tökéletes: nézd át a számokat, mielőtt mented.");
+    applyImport(data.text,"Kész. A felismerés nem tökéletes: nézd át a számokat, mielőtt mented.",true);
   }catch(e){ui.ocr={msg:navigator.onLine?"Nem sikerült feldolgozni a képet. Próbáld újra, vagy használd a Beillesztést.":"A képfelismeréshez internet kell.",err:1};render()}
 }
 document.addEventListener("change",e=>{if(e.target.id==="f-img"&&e.target.files[0]){ocrFile(e.target.files[0]);e.target.value=""}});
