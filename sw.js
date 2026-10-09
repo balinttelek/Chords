@@ -1,5 +1,5 @@
 // Számkotta service worker: the app works offline; song data syncs through Supabase when online.
-const VERSION = "szk-v13";
+const VERSION = "szk-v14";
 const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./songs-seed.json",
   "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png"];
 
