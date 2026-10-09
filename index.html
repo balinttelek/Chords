@@ -119,6 +119,9 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .st-zone{position:absolute;top:0;bottom:0;width:50%;z-index:2}
 .st-area{touch-action:none}
 .st-card{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-inline:8px;background:var(--sbg);will-change:transform;transform-origin:50% 90%}
+.st-card{z-index:1}
+.st-card.back{z-index:0;visibility:hidden;transform:scale(.92);opacity:.45;border-radius:24px;box-shadow:0 0 0 1px var(--sbtn)}
+.st-card.back.show{visibility:visible}
 .st-card.moving{border-radius:24px;box-shadow:0 0 0 1px var(--sbtn),0 24px 60px rgba(0,0,0,.45)}
 .st-card.enter{animation:cardIn .28s cubic-bezier(.2,.8,.2,1)}
 @keyframes cardIn{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
@@ -498,11 +501,20 @@ function vStage(){
   return '<div class="stage'+(prefs.light?" light":"")+'" id="stage"><div class="st-top"><button class="sbtn" data-act="exitstage">Kész</button>'+
   '<div class="info"><b>'+(st.list.length>1?(st.i+1)+"/"+st.list.length+"  ":"")+esc(s.title)+'</b><span>'+esc(sub)+'</span></div>'+
   '<button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"Sötét":"Világos")+'</button></div>'+
-  '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],bigKey:true}).replace('class="chart"','id="stChart" class="chart"')+'</div><div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
+  '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+stageChart(id,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
   '<div class="st-bot"><span>'+(prev?"‹ "+esc(prev.title):"")+'</span><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div></div>';
 }
-function fit(){
-  const area=$("#stArea"), ch=$("#stChart"); if(!area||!ch) return;
+function stageChart(id,cid){
+  const st=ui.stage, s=songs.get(id)||{body:""};
+  return chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],bigKey:true}).replace('class="chart"','id="'+cid+'" class="chart"');
+}
+function backCard(d){
+  const st=ui.stage, nid=st.list[st.i+d]; if(!nid) return "";
+  return '<div class="st-card back" id="'+(d>0?"stNext":"stPrev")+'" aria-hidden="true">'+stageChart(nid,d>0?"stChartN":"stChartP")+'</div>';
+}
+function fit(){["stChart","stChartN","stChartP"].forEach(fitOne)}
+function fitOne(cid){
+  const area=$("#stArea"), ch=document.getElementById(cid); if(!area||!ch) return;
   const W=area.clientWidth-16, H=area.clientHeight-10; let best={f:0,m:"top"};
   for(const m of ["top","left"]){
     ch.className="chart lbl-"+m; let lo=10,hi=560;
@@ -521,7 +533,9 @@ let flying=false;
 function step(d){
   const st=ui.stage; if(!st||flying||!hasSong(d)) return;
   const card=$("#stCard");
-  const go=()=>{flying=false;st.i+=d;st.enter=1;render()};
+  const go=()=>{flying=false;st.i+=d;render()};
+  const back=document.getElementById(d>0?"stNext":"stPrev");
+  if(back&&!reduceMotion()){back.classList.add("show");back.style.transition="transform .22s ease-out, opacity .22s";back.style.transform="none";back.style.opacity="1"}
   if(!card||reduceMotion()){st.i+=d;render();return}
   flying=true;
   card.classList.add("moving");
@@ -541,6 +555,9 @@ document.addEventListener("pointermove",e=>{
   if(!cd.on){ if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)){cd.on=true;card.classList.add("moving");card.style.transition="none"} else return }
   cd.dx=dx; const eff=hasSong(dx<0?1:-1)?dx:dx*.25;
   card.style.transform="translateX("+eff+"px) rotate("+(eff/28)+"deg)";
+  const show=document.getElementById(dx<0?"stNext":"stPrev"), hide=document.getElementById(dx<0?"stPrev":"stNext");
+  if(hide) hide.classList.remove("show");
+  if(show){const p=Math.min(1,Math.abs(eff)/($("#stArea").clientWidth||1));show.classList.add("show");show.style.transition="none";show.style.transform="scale("+(.92+.08*p)+")";show.style.opacity=String(.45+.55*p)}
 });
 function endCard(e){
   if(!cd||e.pointerId!==cd.id) return; const c=cd; cd=null; if(!c.on) return;
@@ -548,6 +565,7 @@ function endCard(e){
   const d=c.dx<0?1:-1, v=Math.abs(c.dx)/Math.max(1,performance.now()-c.t), card=$("#stCard");
   if((Math.abs(c.dx)>80||(v>.5&&Math.abs(c.dx)>40))&&hasSong(d)) return step(d);
   if(card){card.style.transition="transform .3s cubic-bezier(.2,.9,.3,1.2)";card.style.transform="";setTimeout(()=>{card.classList.remove("moving");card.style.transition=""},300)}
+  document.querySelectorAll(".st-card.back.show").forEach(b=>{b.style.transition="transform .3s, opacity .3s";b.style.transform="";b.style.opacity="";setTimeout(()=>b.classList.remove("show"),300)});
 }
 document.addEventListener("pointerup",endCard);
 document.addEventListener("pointercancel",endCard);
