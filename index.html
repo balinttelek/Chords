@@ -188,6 +188,16 @@ html{background:var(--bg)}
 .kchip{flex:none;min-width:48px;height:36px;padding:0 10px;border-radius:10px;box-sizing:border-box;background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);font-family:var(--display);font-weight:800;font-size:17px;color:var(--ink)}
 .kchip.over{box-shadow:none}
 .kchip.empty{color:var(--muted);font-weight:600}
+/* every list is one grouped card like the setlist */
+.glist{display:grid;gap:0;background:var(--surface);border-radius:16px;overflow:hidden}
+.glist>.row{border-radius:0;background:none;min-height:64px;padding:8px 14px 8px 16px}
+.glist>.row+.row{box-shadow:inset 0 1px 0 var(--line)}
+.glist>.row:active{background:var(--sunk)}
+.glist .kchip{display:inline-grid;place-items:center}
+.glist .check{margin-left:2px}
+.dstack{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;line-height:1}
+.dstack b{font-family:var(--display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.dstack span{color:var(--accent);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
 .toast{display:flex;align-items:center;gap:14px}
 .toast[hidden]{display:none}
 .kbtn{border:0;cursor:pointer}
@@ -429,6 +439,7 @@ const fmtDate=s=>{if(!s)return"";const d=new Date(s+"T12:00");return isNaN(d)?s:
 const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="kchip kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
+const chip=s=>'<span class="kchip'+(s.key?"":" empty")+'">'+esc(s.key||"–")+'</span>';
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
 const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
@@ -457,9 +468,10 @@ function vLogin(){
 function setsList(){
   const arr=sortedSets();
   if(!arr.length) return '<div class="empty-state">Még nincs setlist.<br>Koppints a + gombra, és rakd össze a vasárnapit.</div>';
-  return '<div class="list">'+arr.map(s=>{const n=(s.songIds||[]).filter(id=>songs.has(id)).length;
-    const d=s.date?new Date(s.date+"T12:00"):null;
-    return '<button class="row" data-act="openset" data-id="'+s.id+'"><span class="tile num">'+(d&&!isNaN(d)?d.getDate():"·")+'</span><div class="main"><div class="t1">'+esc(s.name||"Névtelen setlist")+'</div><div class="t2">'+esc(fmtDate(s.date))+' · '+n+' dal</div></div><span class="chev">'+ico.chev+'</span></button>'}).join("")+'</div>';
+  const MON=["jan","feb","márc","ápr","máj","jún","júl","aug","szept","okt","nov","dec"];
+  return '<div class="glist">'+arr.map(s=>{const n=(s.songIds||[]).filter(id=>songs.has(id)).length;
+    const d=s.date?new Date(s.date+"T12:00"):null, ok=d&&!isNaN(d);
+    return '<button class="row" data-act="openset" data-id="'+s.id+'"><span class="dstack"><b>'+(ok?d.getDate():"·")+'</b><span>'+(ok?MON[d.getMonth()]:"")+'</span></span><div class="main"><div class="t1">'+esc(s.name||"Névtelen setlist")+'</div><div class="t2">'+n+' dal</div></div><span class="chev">'+ico.chev+'</span></button>'}).join("")+'</div>';
 }
 function songsList(){
   const q=norm(ui.q), arr=sortedSongs().filter(s=>!q||norm(s.title+" "+s.artist).includes(q));
@@ -468,8 +480,8 @@ function songsList(){
   let out="",last="";
   for(const s of arr){
     const L=q?"":(norm(s.title)[0]||"#").toUpperCase();
-    if(L!==last){out+=(out?'</div>':'')+(q?"":'<div class="letter">'+esc(L)+'</div>')+'<div class="list">';last=L}
-    out+='<button class="row" data-act="opensong" data-id="'+s.id+'">'+tile(s)+'<div class="main"><div class="t1">'+esc(s.title||"Névtelen dal")+'</div>'+(songMeta(s)?'<div class="t2">'+esc(songMeta(s))+'</div>':"")+'</div><span class="chev">'+ico.chev+'</span></button>';
+    if(L!==last){out+=(out?'</div>':'')+(q?"":'<div class="letter">'+esc(L)+'</div>')+'<div class="glist">';last=L}
+    out+='<button class="row" data-act="opensong" data-id="'+s.id+'"><div class="main"><div class="t1">'+esc(s.title||"Névtelen dal")+'</div>'+(songMeta(s)?'<div class="t2">'+esc(songMeta(s))+'</div>':"")+'</div>'+chip(s)+'</button>';
   }
   return out+'</div>';
 }
@@ -527,7 +539,7 @@ function vPicker(s){
 function pickList(s){
   const q=norm(ui.pq), inSet=new Set(s.songIds||[]), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+g.artist).includes(q));
   if(!arr.length) return '<div class="empty-state">'+(songs.size?"Nincs találat.":"Előbb vegyél fel dalokat a Dalok fülön.")+'</div>';
-  return '<div class="list">'+arr.map(g=>'<button class="row" data-act="pick" data-id="'+g.id+'">'+tile(g)+'<div class="main"><div class="t1">'+esc(g.title)+'</div></div><span class="check'+(inSet.has(g.id)?" on":"")+'">'+(inSet.has(g.id)?ico.ok:"")+'</span></button>').join("")+'</div>';
+  return '<div class="glist">'+arr.map(g=>'<button class="row" data-act="pick" data-id="'+g.id+'"><div class="main"><div class="t1">'+esc(g.title)+'</div></div>'+chip(g)+'<span class="check'+(inSet.has(g.id)?" on":"")+'">'+(inSet.has(g.id)?ico.ok:"")+'</span></button>').join("")+'</div>';
 }
 
 /* ---------- stage ---------- */
@@ -551,7 +563,7 @@ function vStageLib(){
 function libList(){
   const st=ui.stage, q=norm(ui.lq||""), inList=new Set(st.list), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+g.artist).includes(q));
   if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
-  return '<div class="list">'+arr.map(g=>'<button class="row" data-act="libpick" data-id="'+g.id+'">'+tile(g)+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(inList.has(g.id)?'<div class="t2">Már a listában van, odaugrik</div>':'')+'</div><span class="chev">'+ico.chev+'</span></button>').join("")+'</div>';
+  return '<div class="glist">'+arr.map(g=>'<button class="row" data-act="libpick" data-id="'+g.id+'"><div class="main"><div class="t1">'+esc(g.title)+'</div>'+(inList.has(g.id)?'<div class="t2">Már a listában van, odaugrik</div>':'')+'</div>'+chip(g)+'</button>').join("")+'</div>';
 }
 function vStageKey(id,s,cur){
   const st=ui.stage, base=stageBase(st,id), fromSet=base!==s.key;
