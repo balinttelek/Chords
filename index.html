@@ -82,6 +82,9 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .eyebrow{margin:12px 0 6px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eyebrow b{color:var(--accent);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.4px;text-transform:none}
 .h1.song{margin:0 0 20px}
+.under{position:fixed;inset:0;z-index:0;background:var(--bg);overflow:hidden;pointer-events:none}
+.under .udim{position:absolute;inset:0;background:#000;opacity:.35}
+#app.swipefront{position:relative;z-index:1;background:var(--bg);min-height:100vh;box-shadow:-10px 0 30px rgba(0,0,0,.18)}
 .dateline{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-top:12px}
 .dateline svg{width:14px;height:14px;flex:none}
 .dateline .datein{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%}
@@ -833,13 +836,37 @@ document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=(e.touches.
 document.addEventListener("touchmove",e=>{
   if(!edge) return; const t=e.touches[0], dx=t.clientX-edge.x, dy=t.clientY-edge.y;
   if(!edge.on){if(dx>12&&dx>Math.abs(dy)*1.5)edge.on=true;else if(Math.abs(dy)>12){edge=null;return}else return}
-  e.preventDefault(); edge.dx=Math.max(0,dx); const a=$("#app"); a.style.transition="none"; a.style.transform="translateX("+edge.dx+"px)";
+  e.preventDefault(); edge.dx=Math.max(0,dx); const a=$("#app");
+  if(!edge.under){edge.under=showUnder();a.classList.add("swipefront")}
+  a.style.transition="none"; a.style.transform="translateX("+edge.dx+"px)";
+  if(edge.under){const p=Math.min(1,edge.dx/innerWidth);edge.under.style.transition="none";edge.under.style.transform="translateX("+(-28*(1-p))+"%)";edge.under.querySelector(".udim").style.opacity=String(.35*(1-p))}
 },{passive:false});
+/* the page you'd go back to, drawn underneath while you swipe, like the stage's card paging */
+function underHTML(){
+  if(ui.picker||ui.keyFor||ui.stageKey||ui.stageLib) return null;
+  let v="home",id=null;
+  if(ui.view==="stage"){const f=ui.stage&&ui.stage.from;if(f){v=f.view;id=f.id}}
+  else if(ui.view==="edit"){const d=ui.draft&&ui.draft.id;if(d&&songs.has(d)){v="song";id=d}}
+  else if(ui.view==="home") return null;
+  const keep={view:ui.view,id:ui.id};ui.view=v;ui.id=id;
+  let html="";try{html=v==="song"?vSong():v==="set"?vSet():v==="stage"?"":vHome()}finally{ui.view=keep.view;ui.id=keep.id}
+  return {html,v};
+}
+function showUnder(){
+  const r=underHTML(); if(!r) return null;
+  const u=document.createElement("div"); u.className="under";
+  u.innerHTML='<div class="uin" style="margin-top:'+(r.v==="home"?-(ui.homeY||0):0)+'px">'+r.html+'</div><div class="udim"></div>';
+  u.style.transform="translateX(-28%)"; document.body.appendChild(u); return u;
+}
+function dropUnder(a){document.querySelectorAll(".under").forEach(x=>x.remove());a.classList.remove("swipefront")}
 function endEdge(commit){
   if(!edge) return; const ed=edge; edge=null; if(!ed.on) return;
-  const a=$("#app"); quiet();
-  if(commit&&ed.dx>90){a.style.transition="transform .18s ease-out";a.style.transform="translateX(100%)";setTimeout(()=>{a.style.transition="";a.style.transform="";history.back()},170)}
-  else{a.style.transition="transform .2s ease-out";a.style.transform="";setTimeout(()=>{a.style.transition=""},200)}
+  const a=$("#app"), u=ed.under; quiet();
+  if(commit&&ed.dx>90){a.style.transition="transform .2s ease-out";a.style.transform="translateX(100%)";
+    if(u){u.style.transition="transform .2s ease-out";u.style.transform="none";u.querySelector(".udim").style.transition="opacity .2s";u.querySelector(".udim").style.opacity="0"}
+    setTimeout(()=>{a.style.transition="";a.style.transform="";history.back();requestAnimationFrame(()=>dropUnder(a))},200)}
+  else{a.style.transition="transform .2s ease-out";a.style.transform="";if(u){u.style.transition="transform .2s ease-out";u.style.transform="translateX(-28%)"}
+    setTimeout(()=>{a.style.transition="";dropUnder(a)},200)}
 }
 document.addEventListener("touchend",()=>endEdge(true));
 document.addEventListener("touchcancel",()=>endEdge(false));
