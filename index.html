@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Számkotta</title>
+<meta name="description" content="Nashville számkották és setlistek színpadra">
+<meta name="theme-color" content="#F3F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121315" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Számkotta">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one calm column with a bottom tab bar; key tiles anchor every song row; the stage view is a separate black room that fits each chart as large as the phone allows. */
+:root{
+  --bg:#F3F4F1; --surface:#FFFFFF; --sunk:#E8E9E5; --ink:#17191C; --muted:#6E7176; --line:#DCDDD8;
+  --accent:#E2551F; --accent-ink:#FFFFFF; --accent-soft:#FBE3D8; --danger:#C93A2B;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Figtree",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121315; --surface:#1C1D20; --sunk:#26282B; --ink:#F2F2EE; --muted:#9A9DA3; --line:#2E3034;
+  --accent:#FF7A3D; --accent-ink:#1A0D06; --accent-soft:#3A2116; --danger:#FF6B5B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121315; --surface:#1C1D20; --sunk:#26282B; --ink:#F2F2EE; --muted:#9A9DA3; --line:#2E3034;
+  --accent:#FF7A3D; --accent-ink:#1A0D06; --accent-soft:#3A2116; --danger:#FF6B5B; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,textarea,select{font:inherit;color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:640px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px));padding-block:calc(10px + env(safe-area-inset-top,0px)) 140px}
+.top{display:flex;align-items:center;justify-content:space-between;min-height:44px;gap:12px}
+.link{color:var(--accent);font-weight:600;padding:8px 0;display:inline-flex;align-items:center;gap:4px}
+.h1{font-family:var(--display);font-stretch:112%;font-weight:800;font-size:36px;letter-spacing:-.5px;line-height:1.05;margin:6px 0 4px;text-wrap:balance}
+.sub{color:var(--muted);font-size:15px;margin:0 0 18px}
+.search{display:flex;align-items:center;gap:8px;background:var(--sunk);border-radius:12px;padding:10px 12px;margin-bottom:16px;color:var(--muted)}
+.search input{border:0;background:none;outline:none;flex:1;min-width:0;font-size:17px}
+.list{display:grid;gap:8px}
+.row{display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:var(--r);padding:10px 14px 10px 10px;width:100%;text-align:left;min-height:60px;box-sizing:border-box}
+.row:active{background:var(--sunk)}
+.tile{flex:none;width:44px;height:44px;border-radius:10px;background:var(--sunk);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:19px;font-stretch:100%;font-variant-numeric:tabular-nums}
+.tile.empty{color:var(--muted);font-weight:600;font-size:15px}
+.tile.num{background:var(--accent-soft);color:var(--accent)}
+.row .main{flex:1;min-width:0}
+.t1{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t2{color:var(--muted);font-size:14px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{color:var(--muted);opacity:.7;flex:none}
+.letter{color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:16px 4px 6px}
+.empty-state{background:var(--surface);border-radius:var(--r);color:var(--muted);text-align:center;padding:28px 16px;line-height:1.5}
+.ic{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;color:var(--muted);flex:none}
+.ic:active{background:var(--sunk)}
+.ic.del{color:var(--danger)}
+.ic[disabled]{opacity:.25}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:8px}
+.tabs .tab{flex:1;max-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:10px}
+.tabs .tab[aria-pressed="true"]{color:var(--accent)}
+.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(226,85,31,.32)}
+.cta{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(226,85,31,.3)}
+.titlein{font-family:var(--display);font-stretch:112%;font-size:30px;font-weight:800;letter-spacing:-.4px;border:0;background:none;outline:none;width:100%;padding:0;margin:6px 0 2px}
+.datein{border:0;background:none;color:var(--muted);font-size:16px;padding:0;margin-bottom:18px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+.chip{background:var(--surface);border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.chip.k{background:var(--ink);color:var(--bg);font-family:var(--display)}
+.note{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:10px 14px;font-size:15px;margin:0 0 14px;line-height:1.4}
+.card{background:var(--surface);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.field{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line)}
+.field:first-child{border-top:0}
+.field label{width:96px;flex:none;color:var(--muted);font-size:15px}
+.field input,.field select{flex:1;min-width:0;border:0;background:none;outline:none;font-size:17px;padding:2px 0}
+.label{color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:0 4px 8px}
+textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:var(--surface);border-radius:var(--r);padding:14px 16px;font-family:var(--display);font-size:19px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box}
+.hint{color:var(--muted);font-size:13.5px;line-height:1.5;margin:10px 4px 22px}
+.hint code{background:var(--sunk);border-radius:5px;padding:1px 5px;font-size:12.5px;color:var(--ink)}
+.danger{color:var(--danger);font-weight:600;padding:14px 16px;width:100%;text-align:left}
+.confirm{display:flex;gap:12px;align-items:center;padding:12px 16px;flex-wrap:wrap}
+.confirm .yes{background:var(--danger);color:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
+.banner{background:var(--sunk);color:var(--muted);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:14px;line-height:1.4}
+.addrow{display:flex;align-items:center;gap:10px;color:var(--accent);font-weight:600;padding:14px;justify-content:center;border:1.5px dashed var(--line);border-radius:var(--r);width:100%}
+
+/* chart */
+.chart{display:inline-grid;grid-template-columns:1fr;font-family:var(--display);font-weight:700;font-stretch:100%;line-height:1.08;font-variant-numeric:tabular-nums}
+.chart .sec{display:contents}
+.chart .lbl{font-family:var(--body);font-weight:700;font-size:max(12px,.24em);color:var(--accent);line-height:1.2;padding-top:.55em;letter-spacing:.02em}
+.chart .sec:first-child .lbl{padding-top:0}
+.chart .lbl:empty{display:none}
+.chart .rows{display:grid;grid-template-columns:repeat(var(--n),max-content);column-gap:.55em;row-gap:.02em}
+.chart .t.first{grid-column-start:1}
+.chart .t.mark{font-family:var(--body);font-weight:600;font-size:.42em;align-self:center;color:var(--muted)}
+.chart .t.ltr{font-stretch:88%}
+.chart .sl{font-size:.6em}
+.chart .q{font-size:.6em;font-weight:600}
+.chart.lbl-left{grid-template-columns:max-content max-content;column-gap:.35em;row-gap:.24em}
+.chart.lbl-left .lbl{padding-top:.2em;max-width:7em;text-align:right;line-height:1.15}
+.chart.lbl-left .lbl:empty{display:block}
+.reading{background:var(--surface);border-radius:var(--r);padding:18px 16px;overflow-x:auto;margin-bottom:22px}
+.reading .chart{font-size:34px}
+
+/* stage */
+.stage{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--sbg);color:var(--sfg);
+  --sbg:#000;--sfg:#fff;--smuted:#8C8F94;--sacc:#FF7A3D;--sbtn:rgba(255,255,255,.12);user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.stage.light{--sbg:#fff;--sfg:#000;--smuted:#5E6166;--sacc:#C8461A;--sbtn:rgba(0,0,0,.07)}
+.stage .chart .lbl{color:var(--sacc)}
+.stage .chart .t.mark{color:var(--smuted)}
+.st-top{display:flex;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top,0px)) 10px 4px}
+.st-top .info{flex:1;min-width:0;text-align:center;line-height:1.2}
+.st-top .info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px}
+.st-top .info span{color:var(--smuted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sbtn{min-width:44px;height:36px;padding:0 12px;border-radius:12px;background:var(--sbtn);color:var(--sfg);font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-family:var(--display)}
+.st-area{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;padding-inline:8px}
+.st-zone{position:absolute;top:0;bottom:0;width:50%}
+.st-zone.l{left:0}.st-zone.r{right:0}
+.st-bot{display:flex;justify-content:space-between;gap:12px;padding:4px 14px calc(8px + env(safe-area-inset-bottom,0px));color:var(--smuted);font-size:14px}
+.st-bot span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48%}
+.st-bot .nx{color:var(--sfg);font-weight:600}
+
+/* sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;top:calc(48px + env(safe-area-inset-top,0px));background:var(--bg);border-radius:20px 20px 0 0;z-index:41;display:flex;flex-direction:column}
+.sheet .inner{overflow-y:auto;padding-inline:16px;padding-block:6px 40px;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
+.check{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center}
+.check.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion: no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+.cta.static{position:static;width:100%;margin-top:4px;box-sizing:border-box}
+.cta[disabled]{opacity:.6}
+.err{color:var(--danger);font-size:15px;margin:0 4px 14px}
+.brand{display:block;border-radius:18px;margin:28px 0 10px}
+.acct{color:var(--muted);font-size:14px;text-align:center;margin-top:28px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center}
+.acct button{color:var(--accent);font-weight:600}
+.stage{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+html{background:var(--bg)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast" hidden></div>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const KEYS=["C","C#","Db","D","Eb","E","F","F#","Gb","G","Ab","A","B","H"];
+const ico={
+  back:'<svg width="11" height="19" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  chev:'<svg width="8" height="13" viewBox="0 0 8 13" aria-hidden="true"><path d="m1.5 1.5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  plus:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  play:'<svg width="15" height="17" viewBox="0 0 16 18" aria-hidden="true"><path d="M2 1.5v15l13-7.5z" fill="currentColor"/></svg>',
+  up:'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 10 5-5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  down:'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  x:'<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m2 2 10 10M12 2 2 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  ok:'<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m2.5 7.5 3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  search:'<svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  list:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="6" r="1.4" fill="currentColor"/><circle cx="4" cy="12" r="1.4" fill="currentColor"/><circle cx="4" cy="18" r="1.4" fill="currentColor"/></svg>',
+  note:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="16" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+};
+
+/* ---------- state + sync ---------- */
+const CFG=window.SZK_CONFIG||{}; const API=(CFG.supabaseUrl||"").replace(/\/$/,"");
+const STORE="szk-store-v2", AUTH="szk-auth-v1", PREF="szamkotta-prefs-v1";
+let store={songs:{},setlists:{},dirty:{},lastSync:0};
+try{const s=JSON.parse(localStorage.getItem(STORE)||"null");if(s)store=Object.assign(store,s)}catch(e){}
+let auth=null;try{auth=JSON.parse(localStorage.getItem(AUTH)||"null")}catch(e){}
+const saveStore=()=>{try{localStorage.setItem(STORE,JSON.stringify(store))}catch(e){}};
+const saveAuth=()=>{try{auth?localStorage.setItem(AUTH,JSON.stringify(auth)):localStorage.removeItem(AUTH)}catch(e){}};
+let songs=new Map(), setlists=new Map();
+const live=coll=>new Map(Object.entries(store[coll]).filter(([,r])=>!r.deleted).map(([k,r])=>[k,{...r.data,id:k}]));
+function rebuild(){songs=live("songs");setlists=live("setlists")}
+rebuild();
+const ui={view:"home",tab:"sets",q:"",id:null,draft:null,editSet:false,picker:false,pq:"",confirmDel:false,stage:null,login:{email:"",err:"",busy:false},confirmOut:false};
+let prefs={letters:false,light:false};
+try{Object.assign(prefs,JSON.parse(localStorage.getItem(PREF)||"{}"))}catch(e){}
+const savePrefs=()=>{try{localStorage.setItem(PREF,JSON.stringify(prefs))}catch(e){}};
+let syncState="idle";
+
+function put(coll,id,data){const {id:_,...d}=data;store[coll][id]={data:d,updated_at:new Date().toISOString(),deleted:false};store.dirty[coll+"/"+id]=1;saveStore();rebuild();scheduleSync()}
+function del(coll,id){const r=store[coll][id];store[coll][id]={data:r?r.data:{},updated_at:new Date().toISOString(),deleted:true};store.dirty[coll+"/"+id]=1;saveStore();rebuild();scheduleSync()}
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600)}
+
+function setSession(j){auth={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Date.now()+(j.expires_in||3600)*1000,user_id:j.user?j.user.id:auth.user_id,email:j.user?j.user.email:auth.email};saveAuth()}
+async function authCall(grant,body){
+  const r=await fetch(API+"/auth/v1/token?grant_type="+grant,{method:"POST",headers:{apikey:CFG.supabaseKey,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({})); if(!r.ok){const e=new Error(j.error_description||j.msg||j.message||"auth");e.status=r.status;throw e} return j;
+}
+async function refresh(){
+  try{setSession(await authCall("refresh_token",{refresh_token:auth.refresh_token}))}
+  catch(e){if(e.status>=400&&e.status<500&&!Object.keys(store.dirty).length){auth=null;saveAuth();render()}throw e}
+}
+async function api(path,opts={}){
+  if(!auth) throw new Error("auth");
+  if(Date.now()>auth.expires_at-60000) await refresh();
+  const call=()=>fetch(API+path,{...opts,headers:{apikey:CFG.supabaseKey,Authorization:"Bearer "+auth.access_token,"Content-Type":"application/json",...(opts.headers||{})}});
+  let r=await call(); if(r.status===401){await refresh();r=await call()}
+  if(!r.ok) throw new Error("http "+r.status); return r;
+}
+async function signIn(email,pw){setSession(await authCall("password",{email,password:pw}))}
+
+let syncing=null,syncTimer;
+function scheduleSync(){clearTimeout(syncTimer);syncTimer=setTimeout(sync,700)}
+async function seed(){
+  try{const arr=await (await fetch("songs-seed.json")).json();const now=new Date().toISOString();
+    for(const s of arr){const {id,...d}=s;store.songs[id]={data:{...d,updatedAt:Date.now()},updated_at:now,deleted:false};store.dirty["songs/"+id]=1}
+    store.seeded=true;saveStore();rebuild();softRender();setTimeout(sync,100)}catch(e){}
+}
+function sync(){
+  if(!auth||!API) return Promise.resolve();
+  if(syncing) return syncing;
+  if(!navigator.onLine){syncState="offline";paintStatus();return Promise.resolve()}
+  syncState="syncing";paintStatus();
+  syncing=(async()=>{
+    try{
+      for(const coll of ["songs","setlists"]){
+        const ks=Object.keys(store.dirty).filter(k=>k.startsWith(coll+"/")); if(!ks.length) continue;
+        const rows=ks.map(k=>{const id=k.slice(coll.length+1),r=store[coll][id];return {user_id:auth.user_id,id,data:r.data,updated_at:r.updated_at,deleted:!!r.deleted}});
+        await api("/rest/v1/"+coll+"?on_conflict=user_id,id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(rows)});
+        for(const r of rows) if(store[coll][r.id]&&store[coll][r.id].updated_at===r.updated_at) delete store.dirty[coll+"/"+r.id];
+      }
+      let remoteSongs=0;
+      for(const coll of ["songs","setlists"]){
+        const rows=await (await api("/rest/v1/"+coll+"?select=id,data,updated_at,deleted")).json();
+        if(coll==="songs") remoteSongs=rows.length;
+        const seen=new Set();
+        for(const r of rows){seen.add(r.id);if(store.dirty[coll+"/"+r.id]) continue;store[coll][r.id]={data:r.data,updated_at:r.updated_at,deleted:r.deleted}}
+        for(const id of Object.keys(store[coll])) if(!seen.has(id)&&!store.dirty[coll+"/"+id]) delete store[coll][id];
+      }
+      store.lastSync=Date.now();saveStore();rebuild();syncState="idle";
+      if(!remoteSongs&&!Object.keys(store.songs).length&&!store.seeded) seed();
+      softRender();
+    }catch(e){syncState=navigator.onLine?"error":"offline"}
+    finally{syncing=null;paintStatus()}
+  })();
+  return syncing;
+}
+function softRender(){
+  if(!auth||ui.view==="edit"||ui.view==="stage") return;
+  const ae=document.activeElement&&document.activeElement.id;
+  if(ui.view==="home"&&ae==="q"){$("#songList").innerHTML=songsList();return}
+  if(ui.view==="set"&&/^(s-name|s-date|pq)$/.test(ae||"")){if(ui.picker)$("#pickList").innerHTML=pickList(setlists.get(ui.id)||{});return}
+  render();
+}
+function statusText(){
+  const n=Object.keys(store.dirty).length, wait=n?" · "+n+" változás vár":"";
+  if(syncState==="syncing") return "Szinkronizálás…";
+  if(syncState==="offline"||!navigator.onLine) return "Offline"+(wait||" · minden dal megvan a telefonon");
+  if(syncState==="error") return "Nem sikerült szinkronizálni"+wait;
+  return store.lastSync?"Szinkronizálva "+new Date(store.lastSync).toLocaleTimeString("hu-HU",{hour:"2-digit",minute:"2-digit"})+wait:"";
+}
+function paintStatus(){const el=document.getElementById("syncStatus");if(el)el.textContent=statusText()}
+
+/* ---------- chart parsing ---------- */
+const RE_NUM=/^\(?(dur)?[b#]?[1-7]/;                       // Nashville number, maybe in brackets
+const RE_LTR=/^\(?[A-H](#|b)?(m|maj|min|dim|aug|sus|add|\d|\/|[A-H]|#|b|\(|\)|\+|-|°)*\)?$/; // letter chord, kept as written
+const RE_MARK=/^(\||%|x\d+|\d+x|-|…|\.\.\.|\/|:\|\||\|\|:)$/i;
+const tokKind=t=>t==="."?"gap":RE_MARK.test(t)?"mark":RE_LTR.test(t)?"ltr":RE_NUM.test(t)?"num":"mark";
+function parse(body){
+  const secs=[];let cur=null;
+  for(const raw of String(body||"").split(/\r?\n/)){
+    const line=raw.trim(); if(!line) continue;
+    const ci=line.indexOf(":");
+    if(ci>0 && !/^[(\d\s|]/.test(line)){
+      cur={label:line.slice(0,ci).trim(),rows:[]};secs.push(cur);
+      const rest=line.slice(ci+1).trim(); if(rest) cur.rows.push(rest.split(/\s+/));
+      continue;
+    }
+    const toks=line.split(/\s+/);
+    if(!toks.some(t=>{const k=tokKind(t);return k==="num"||k==="ltr"})){cur={label:line,rows:[]};secs.push(cur);continue}
+    if(!cur){cur={label:"",rows:[]};secs.push(cur)}
+    cur.rows.push(toks);
+  }
+  return secs;
+}
+/* Hungarian naming: H = B natural, B = B flat */
+const NAT={C:0,D:2,E:4,F:5,G:7,A:9,H:11,B:10};
+const SH=["C","C#","D","D#","E","F","F#","G","G#","A","B","H"], FL=["C","Db","D","Eb","E","F","Gb","G","Ab","A","B","H"];
+const DEG=[0,2,4,5,7,9,11];
+function keyPc(k){if(!k)return null;const m=/^([A-H])([#b]?)/.exec(k);if(!m)return null;let p=NAT[m[1]];if(m[1]==="B"&&m[2]==="b")return 10;return (p+(m[2]==="#"?1:m[2]==="b"?-1:0)+12)%12}
+const flatKey=k=>/^(F|B|Bb|Eb|Ab|Db|Gb)$/.test(k||"");
+function degName(acc,d,key){const pc=keyPc(key);const n=(pc+DEG[d-1]+(acc==="#"?1:acc==="b"?-1:0)+12)%12;return (acc==="b"||(acc!=="#"&&flatKey(key))?FL:SH)[n]}
+function numToLetter(tok,key){
+  const m=/^(dur)?([b#]?)([1-7])([^/]*)(?:\/([b#]?)([1-7]))?$/.exec(tok); if(!m||keyPc(key)===null) return null;
+  let q=m[4]; const d=+m[3], dur=!!m[1];
+  if(q.startsWith("-")) q="m"+q.slice(1);
+  const hasQ=/^(m|maj|sus|dim|aug|°)/.test(q);
+  if(!dur&&!m[2]&&!hasQ&&(d===2||d===3||d===6)) q="m"+q;
+  if(!dur&&!m[2]&&!hasQ&&d===7) q="°"+q;
+  let s=degName(m[2],d,key)+q; if(m[6]) s+="/"+degName(m[5],+m[6],key);
+  return s;
+}
+function toLetter(tok,key){
+  const m=/^(\(?)(.*?)(\)?)$/.exec(tok); const inner=m[2];
+  const r=numToLetter(inner,key); return r?m[1]+r+m[3]:null;
+}
+function fmtNum(txt){
+  // slash bass smaller, quality smaller: 4maj7 -> 4<q>maj7</q>
+  const si=txt.indexOf("/"), main=si>0?txt.slice(0,si):txt, bass=si>0?txt.slice(si):"";
+  const m=/^(\(?(?:dur)?[b#]?(?:[1-7]|[A-H](?:#|b)?))([^()]*)(.*)$/.exec(main);
+  let h=m&&m[2]?esc(m[1])+'<span class="q">'+esc(m[2])+'</span>'+esc(m[3]):esc(main);
+  return h+(bass?'<span class="sl">'+esc(bass)+'</span>':"");
+}
+function cell(t,key,letters){
+  const k=tokKind(t);
+  if(k==="gap") return {cls:"",html:""};
+  if(k==="mark") return {cls:"mark",html:esc(t)};
+  if(k==="ltr") return {cls:"ltr",html:fmtNum(t)};
+  const txt=letters?(toLetter(t,key)||t):t;
+  return {cls:"",html:fmtNum(txt)};
+}
+function chartHTML(body,key,letters){
+  const secs=parse(body);
+  if(!secs.length) return '<div class="empty-state">Még nincs kotta ehhez a dalhoz.</div>';
+  return '<div class="chart">'+secs.map(s=>{
+    const n=Math.max(1,...s.rows.map(r=>r.length));
+    const rows=s.rows.map(r=>r.map((t,i)=>{const c=cell(t,key,letters);return '<span class="t'+(i===0?" first":"")+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join("")).join("");
+    return '<div class="sec"><div class="lbl">'+esc(s.label)+'</div><div class="rows" style="--n:'+n+'">'+rows+'</div></div>';
+  }).join("")+'</div>';
+}
+
+/* ---------- helpers ---------- */
+const coll=new Intl.Collator("hu");
+const sortedSongs=()=>[...songs.values()].sort((a,b)=>coll.compare(a.title||"",b.title||""));
+const sortedSets=()=>[...setlists.values()].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+function nextSunday(){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7));return d.toISOString().slice(0,10)}
+const fmtDate=s=>{if(!s)return"";const d=new Date(s+"T12:00");return isNaN(d)?s:d.toLocaleDateString("hu-HU",{month:"long",day:"numeric",weekday:"long"})};
+const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
+const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
+const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false},extra||{});render();window.scrollTo(0,0)};
+
+/* ---------- views ---------- */
+function tabs(){
+  return '<nav class="tabs"><button class="tab" data-act="tab" data-v="sets" aria-pressed="'+(ui.tab==="sets")+'">'+ico.list+'Setlistek</button><button class="tab" data-act="tab" data-v="songs" aria-pressed="'+(ui.tab==="songs")+'">'+ico.note+'Dalok</button></nav>'+
+  '<button class="fab" data-act="new" aria-label="'+(ui.tab==="sets"?"Új setlist":"Új dal")+'">'+ico.plus+'</button>';
+}
+function vHome(){
+  if(ui.tab==="sets") return '<div class="wrap"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+setsList()+acct()+'</div>'+tabs();
+  return '<div class="wrap"><div class="top"></div><h1 class="h1">Dalok</h1><p class="sub">'+songs.size+' dal a daltárban</p>'+
+  '<label class="search">'+ico.search+'<input id="q" type="search" placeholder="Cím vagy előadó" value="'+esc(ui.q)+'" autocomplete="off"></label><div id="songList">'+songsList()+'</div></div>'+tabs();
+}
+function acct(){
+  if(!auth) return "";
+  if(ui.confirmOut) return '<div class="acct">'+(Object.keys(store.dirty).length?'Van még nem szinkronizált változás. Várj, amíg felkerül.':'Kilépsz?')+' <button data-act="dologout">Kilépés</button> <button data-act="nologout">Mégse</button></div>';
+  return '<div class="acct">'+esc(auth.email||"")+' · <button data-act="logout">Kilépés</button></div>';
+}
+function vLogin(){
+  if(!API) return '<div class="wrap"><h1 class="h1">Számkotta</h1><div class="empty-state">Az app még nincs összekötve az adatbázissal.</div></div>';
+  return '<div class="wrap"><img class="brand" src="icons/icon-180.png" alt="" width="72" height="72"><h1 class="h1">Számkotta</h1><p class="sub">Lépj be a fiókoddal. Ezután a dalok offline is elérhetők.</p>'+
+  '<form id="loginForm" class="card"><div class="field"><label for="l-email">E-mail</label><input id="l-email" type="email" autocomplete="username" autocapitalize="off" required value="'+esc(ui.login.email)+'"></div><div class="field"><label for="l-pw">Jelszó</label><input id="l-pw" type="password" autocomplete="current-password" required></div></form>'+
+  (ui.login.err?'<p class="err">'+esc(ui.login.err)+'</p>':'')+
+  '<button class="cta static" form="loginForm" type="submit"'+(ui.login.busy?" disabled":"")+'>'+(ui.login.busy?"Belépés…":"Belépés")+'</button></div>';
+}
+function setsList(){
+  const arr=sortedSets();
+  if(!arr.length) return '<div class="empty-state">Még nincs setlist.<br>Koppints a + gombra, és rakd össze a vasárnapit.</div>';
+  return '<div class="list">'+arr.map(s=>{const n=(s.songIds||[]).filter(id=>songs.has(id)).length;
+    const d=s.date?new Date(s.date+"T12:00"):null;
+    return '<button class="row" data-act="openset" data-id="'+s.id+'"><span class="tile num">'+(d&&!isNaN(d)?d.getDate():"·")+'</span><div class="main"><div class="t1">'+esc(s.name||"Névtelen setlist")+'</div><div class="t2">'+esc(fmtDate(s.date))+' · '+n+' dal</div></div><span class="chev">'+ico.chev+'</span></button>'}).join("")+'</div>';
+}
+function songsList(){
+  const q=norm(ui.q), arr=sortedSongs().filter(s=>!q||norm(s.title+" "+s.artist).includes(q));
+  if(!songs.size) return '<div class="empty-state">Még nincs dal.<br>Koppints a + gombra az elsőhöz.</div>';
+  if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
+  let out="",last="";
+  for(const s of arr){
+    const L=q?"":(norm(s.title)[0]||"#").toUpperCase();
+    if(L!==last){out+=(out?'</div>':'')+(q?"":'<div class="letter">'+esc(L)+'</div>')+'<div class="list">';last=L}
+    out+='<button class="row" data-act="opensong" data-id="'+s.id+'">'+tile(s)+'<div class="main"><div class="t1">'+esc(s.title||"Névtelen dal")+'</div>'+(songMeta(s)?'<div class="t2">'+esc(songMeta(s))+'</div>':"")+'</div><span class="chev">'+ico.chev+'</span></button>';
+  }
+  return out+'</div>';
+}
+function vSong(){
+  const s=songs.get(ui.id); if(!s){ui.view="home";return vHome()}
+  return '<div class="wrap"><div class="top"><button class="link" data-act="back">'+ico.back+' Vissza</button><button class="link" data-act="edit">Szerkesztés</button></div>'+
+  '<h1 class="h1">'+esc(s.title||"Névtelen dal")+'</h1><div class="chips">'+(s.key?'<span class="chip k">'+esc(s.key)+'</span>':'<span class="chip">Nincs hangnem</span>')+(s.bpm?'<span class="chip">'+esc(s.bpm)+' BPM</span>':"")+(s.artist?'<span class="chip">'+esc(s.artist)+'</span>':"")+'</div>'+
+  (s.notes?'<div class="note">'+esc(s.notes)+'</div>':"")+
+  '<div class="reading">'+chartHTML(s.body,s.key,false)+'</div></div>'+
+  '<button class="cta" data-act="playsong">'+ico.play+' Színpadi nézet</button>';
+}
+function vEdit(){
+  const d=ui.draft;
+  return '<div class="wrap"><div class="top"><button class="link" data-act="canceledit">Mégse</button><button class="link" data-act="saveedit">Mentés</button></div>'+
+  '<input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
+  '<div class="card" style="margin-top:12px"><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
+  '<div class="field"><label for="f-key">Hangnem</label><select id="f-key"><option value="">nincs</option>'+KEYS.map(k=>'<option'+(k===d.key?" selected":"")+'>'+k+'</option>').join("")+'</select></div>'+
+  '<div class="field"><label for="f-bpm">Tempó</label><input id="f-bpm" inputmode="numeric" value="'+esc(d.bpm)+'" placeholder="BPM"></div>'+
+  '<div class="field"><label for="f-notes">Megjegyzés</label><input id="f-notes" value="'+esc(d.notes)+'" placeholder="effekt, capo, emlékeztető" autocomplete="off"></div></div>'+
+  '<div class="label">Kotta</div><textarea class="chartin" id="f-body" placeholder="Verse: 1 4 1 6 4" spellcheck="false" autocapitalize="off" autocorrect="off">'+esc(d.body)+'</textarea>'+
+  '<div class="hint">Szakasz neve, kettőspont, utána a számok: <code>Chorus: 4 1 5 6</code>. Minden új sor új ütemsor. A hangnemen kívüli akkordokat nyugodtan írd betűvel (<code>D</code>, <code>C#</code>), azok úgy maradnak. Üres hely egy sorban: <code>.</code></div>'+
+  '<div class="label">Előnézet</div><div class="reading" id="preview">'+chartHTML(d.body,d.key,false)+'</div>'+
+  (d.id&&songs.has(d.id)?'<div class="card">'+(ui.confirmDel?'<div class="confirm"><span>Biztosan törlöd?</span><button class="yes" data-act="dodelsong">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Dal törlése</button>')+'</div>':"")+
+  '</div>';
+}
+function vSet(){
+  const s=setlists.get(ui.id); if(!s){ui.view="home";return vHome()}
+  const ids=(s.songIds||[]).filter(id=>songs.has(id));
+  const rows=ids.map((id,i)=>{const g=songs.get(id);
+    const lead='<span class="tile num">'+(i+1)+'</span>';
+    if(ui.editSet) return '<div class="row">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div><div class="t2">'+esc(g.key||"")+'</div></div><button class="ic" data-act="mv" data-i="'+i+'" data-d="-1" aria-label="Feljebb"'+(i===0?" disabled":"")+'>'+ico.up+'</button><button class="ic" data-act="mv" data-i="'+i+'" data-d="1" aria-label="Lejjebb"'+(i===ids.length-1?" disabled":"")+'>'+ico.down+'</button><button class="ic del" data-act="rm" data-i="'+i+'" aria-label="Kivétel">'+ico.x+'</button></div>';
+    return '<button class="row" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"")+'</div>'+tile(g)+'</button>'}).join("");
+  return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button><button class="link" data-act="toggleedit">'+(ui.editSet?"Kész":"Szerkesztés")+'</button></div>'+
+  '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off"><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum">'+
+  '<div class="list">'+(rows||'<div class="empty-state">Üres a lista. Adj hozzá dalokat.</div>')+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button></div>'+
+  (ui.editSet?'<div class="card" style="margin-top:20px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>':"")+
+  '</div>'+(ids.length&&!ui.editSet?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
+  (ui.picker?vPicker(s):"");
+}
+function vPicker(s){
+  return '<div class="sheet-bg" data-act="closepicker"></div><div class="sheet" role="dialog" aria-label="Dal hozzáadása"><div class="inner"><div class="top"><span style="font-weight:700">Dal hozzáadása</span><button class="link" data-act="closepicker">Kész</button></div>'+
+  '<label class="search">'+ico.search+'<input id="pq" type="search" placeholder="Keresés" value="'+esc(ui.pq)+'" autocomplete="off"></label><div id="pickList">'+pickList(s)+'</div></div></div>';
+}
+function pickList(s){
+  const q=norm(ui.pq), inSet=new Set(s.songIds||[]), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+g.artist).includes(q));
+  if(!arr.length) return '<div class="empty-state">'+(songs.size?"Nincs találat.":"Előbb vegyél fel dalokat a Dalok fülön.")+'</div>';
+  return '<div class="list">'+arr.map(g=>'<button class="row" data-act="pick" data-id="'+g.id+'">'+tile(g)+'<div class="main"><div class="t1">'+esc(g.title)+'</div></div><span class="check'+(inSet.has(g.id)?" on":"")+'">'+(inSet.has(g.id)?ico.ok:"")+'</span></button>').join("")+'</div>';
+}
+
+/* ---------- stage ---------- */
+function vStage(){
+  const st=ui.stage, id=st.list[st.i], s=songs.get(id)||{title:"?",body:""};
+  const prev=st.list[st.i-1]&&songs.get(st.list[st.i-1]), next=st.list[st.i+1]&&songs.get(st.list[st.i+1]);
+  const sub=[s.key?"Key: "+s.key:"",s.bpm?s.bpm+" BPM":"",s.notes].filter(Boolean).join(" · ");
+  return '<div class="stage'+(prefs.light?" light":"")+'" id="stage"><div class="st-top"><button class="sbtn" data-act="exitstage">Kész</button>'+
+  '<div class="info"><b>'+(st.list.length>1?(st.i+1)+"/"+st.list.length+"  ":"")+esc(s.title)+'</b><span>'+esc(sub)+'</span></div>'+
+  '<button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"Sötét":"Világos")+'</button></div>'+
+  '<div class="st-area" id="stArea">'+chartHTML(s.body,s.key,prefs.letters).replace('class="chart"','id="stChart" class="chart"')+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
+  '<div class="st-bot"><span>'+(prev?"‹ "+esc(prev.title):"")+'</span><span class="nx">'+(next?"Következő: "+esc(next.title)+" ›":(st.list.length>1?"Vége":""))+'</span></div></div>';
+}
+function fit(){
+  const area=$("#stArea"), ch=$("#stChart"); if(!area||!ch) return;
+  const W=area.clientWidth-16, H=area.clientHeight-10; let best={f:0,m:"top"};
+  for(const m of ["top","left"]){
+    ch.className="chart lbl-"+m; let lo=10,hi=560;
+    for(let k=0;k<14;k++){const mid=(lo+hi)/2;ch.style.fontSize=mid+"px";const r=ch.getBoundingClientRect();if(r.width<=W&&r.height<=H)lo=mid;else hi=mid}
+    if(lo>best.f*1.04) best={f:lo,m};
+  }
+  ch.className="chart lbl-"+best.m; ch.style.fontSize=Math.floor(best.f)+"px";
+}
+let wake=null;
+async function lockScreen(){try{if("wakeLock" in navigator&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>wake=null)}}catch(e){}}
+function releaseScreen(){try{wake&&wake.release()}catch(e){}wake=null}
+function step(d){const st=ui.stage;if(!st)return;const n=st.i+d;if(n<0||n>=st.list.length)return;st.i=n;render()}
+function startStage(list,i){ui.stage={list,i,from:{view:ui.view,id:ui.id}};ui.view="stage";render();lockScreen()}
+
+/* ---------- render ---------- */
+function render(){
+  if(!auth){$("#app").innerHTML=vLogin();document.body.style.overflow="";return}
+  const v=ui.view;
+  $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
+  document.body.style.overflow=(v==="stage"||ui.picker)?"hidden":"";
+  if(v==="stage"){requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit)}
+}
+function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b||b.disabled) return;
+  const a=b.dataset.act, id=b.dataset.id, i=+b.dataset.i;
+  const set=ui.view==="set"?setlists.get(ui.id):null;
+  switch(a){
+    case "tab": ui.tab=b.dataset.v; render(); window.scrollTo(0,0); break;
+    case "home": go("home"); break;
+    case "back": go("home"); break;
+    case "new":
+      if(ui.tab==="sets"){const nid=newId("l");const d=nextSunday();put("setlists",nid,{name:"Vasárnap, "+new Date(d+"T12:00").toLocaleDateString("hu-HU",{month:"long",day:"numeric"}),date:d,songIds:[],updatedAt:Date.now()});go("set",{id:nid})}
+      else go("edit",{draft:{id:null,title:"",artist:"",key:"",bpm:"",notes:"",body:""}});
+      break;
+    case "opensong": go("song",{id}); break;
+    case "openset": go("set",{id}); break;
+    case "edit": {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||""}})} break;
+    case "canceledit": ui.draft.id?go("song",{id:ui.draft.id}):go("home"); break;
+    case "saveedit": {readDraft();const d=ui.draft,sid=d.id||newId("s");put("songs",sid,{title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()});go("song",{id:sid})} break;
+    case "askdel": ui.confirmDel=true; render(); break;
+    case "nodel": ui.confirmDel=false; render(); break;
+    case "dodelsong": del("songs",ui.draft.id); ui.tab="songs"; go("home"); toast("Dal törölve"); break;
+    case "dodelset": del("setlists",ui.id); go("home"); toast("Setlist törölve"); break;
+    case "toggleedit": ui.editSet=!ui.editSet; ui.confirmDel=false; render(); break;
+    case "mv": case "rm": {const ids=(set.songIds||[]).filter(x=>songs.has(x));
+      if(a==="rm") ids.splice(i,1); else {const j=i+(+b.dataset.d);[ids[i],ids[j]]=[ids[j],ids[i]]}
+      put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});render()} break;
+    case "picker": ui.picker=true; ui.pq=""; render(); break;
+    case "closepicker": ui.picker=false; render(); break;
+    case "pick": {const ids=[...(set.songIds||[])].filter(x=>songs.has(x));const k=ids.indexOf(id);
+      if(k>=0) ids.splice(k,1); else ids.push(id);
+      put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});
+      $("#pickList").innerHTML=pickList(setlists.get(set.id))} break;
+    case "playfrom": if(set&&!ui.editSet) startStage((set.songIds||[]).filter(x=>songs.has(x)),i); break;
+    case "playsong": startStage([ui.id],0); break;
+    case "exitstage": {const f=ui.stage.from;releaseScreen();ui.stage=null;go(f.view,{id:f.id})} break;
+    case "prev": step(-1); break;
+    case "next": step(1); break;
+    case "letters": prefs.letters=!prefs.letters; savePrefs(); render(); break;
+    case "light": prefs.light=!prefs.light; savePrefs(); render(); break;
+    case "logout": ui.confirmOut=true; render(); break;
+    case "nologout": ui.confirmOut=false; render(); break;
+    case "dologout": if(Object.keys(store.dirty).length){sync();break} auth=null;saveAuth();store={songs:{},setlists:{},dirty:{},lastSync:0};saveStore();rebuild();ui.confirmOut=false;go("home"); break;
+  }
+});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.id==="q"){ui.q=t.value;$("#songList").innerHTML=songsList()}
+  else if(t.id==="pq"){ui.pq=t.value;$("#pickList").innerHTML=pickList(setlists.get(ui.id))}
+  else if(ui.view==="edit"&&(t.id==="f-body"||t.id==="f-key")){readDraft();$("#preview").innerHTML=chartHTML(ui.draft.body,ui.draft.key,false)}
+});
+document.addEventListener("change",e=>{
+  const t=e.target, s=ui.view==="set"&&setlists.get(ui.id); if(!s) return;
+  if(t.id==="s-name") put("setlists",s.id,{...s,name:t.value.trim()||"Névtelen setlist",updatedAt:Date.now()});
+  if(t.id==="s-date") put("setlists",s.id,{...s,date:t.value,updatedAt:Date.now()});
+});
+document.addEventListener("keydown",e=>{
+  if(ui.view!=="stage") return;
+  if(["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(e.key)){e.preventDefault();step(1)}
+  else if(["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(e.key)){e.preventDefault();step(-1)}
+  else if(e.key==="Escape"){document.querySelector('[data-act="exitstage"]')?.click()}
+});
+let tx=null,ty=null;
+document.addEventListener("touchstart",e=>{if(ui.view==="stage"){tx=e.touches[0].clientX;ty=e.touches[0].clientY}},{passive:true});
+document.addEventListener("touchend",e=>{if(ui.view!=="stage"||tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3){e.preventDefault();step(dx<0?1:-1)}},{passive:false});
+let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(fit,80)});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&ui.view==="stage"){wake=null;lockScreen()}});
+
+/* ---------- boot ---------- */
+document.addEventListener("submit",async e=>{
+  if(e.target.id!=="loginForm") return; e.preventDefault();
+  ui.login.email=$("#l-email").value.trim(); const pw=$("#l-pw").value;
+  ui.login.busy=true; ui.login.err=""; render();
+  try{await signIn(ui.login.email,pw);ui.login.busy=false;render();sync()}
+  catch(err){ui.login.busy=false;
+    ui.login.err=/fetch|network/i.test(err.message)?"Nincs internet. A belépéshez kell net.":/invalid/i.test(err.message)?"Hibás e-mail vagy jelszó.":err.message;render()}
+});
+window.addEventListener("online",()=>sync());
+window.addEventListener("offline",()=>{syncState="offline";paintStatus()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")sync()});
+setInterval(()=>{if(document.visibilityState==="visible"&&ui.view!=="edit")sync()},60000);
+render(); sync();
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+})();
+</script>
+</body>
+</html>
