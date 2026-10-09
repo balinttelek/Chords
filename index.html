@@ -66,6 +66,11 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);-webkit-transform:translateZ(0);transform:translateZ(0);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:8px}
 .tabs .tab{flex:1;max-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:10px}
 .tabs .tab[aria-pressed="true"]{color:var(--accent)}
+.tabs{flex-direction:column;align-items:center;gap:4px}
+.tabrow{display:flex;justify-content:center;align-items:center;gap:8px;width:100%}
+.tabadd{flex:none;width:52px;height:52px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;margin:0 18px}
+.tabadd:active{transform:scale(.95)}
+.tabs .acct{margin:2px 0 0;font-size:12.5px;gap:6px}
 .fab{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(46,140,163,.30)}
 .cta{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(46,140,163,.28)}
 .titlein{font-family:var(--display);font-stretch:112%;font-size:30px;font-weight:800;letter-spacing:-.4px;border:0;background:none;outline:none;width:100%;padding:0;margin:6px 0 2px}
@@ -482,11 +487,12 @@ const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,pi
 
 /* ---------- views ---------- */
 function tabs(){
-  return '<nav class="tabs"><button class="tab" data-act="tab" data-v="sets" aria-pressed="'+(ui.tab==="sets")+'">'+ico.list+'Setlistek</button><button class="tab" data-act="tab" data-v="songs" aria-pressed="'+(ui.tab==="songs")+'">'+ico.note+'Dalok</button></nav>'+
-  '<button class="fab" data-act="new" aria-label="'+(ui.tab==="sets"?"Új setlist":"Új dal")+'">'+ico.plus+'</button>';
+  return '<nav class="tabs">'+(ui.tab==="sets"?acct():'')+'<div class="tabrow"><button class="tab" data-act="tab" data-v="sets" aria-pressed="'+(ui.tab==="sets")+'">'+ico.list+'Setlistek</button>'+
+  '<button class="tabadd" data-act="new" aria-label="'+(ui.tab==="sets"?"Új setlist":"Új dal")+'">'+ico.plus+'</button>'+
+  '<button class="tab" data-act="tab" data-v="songs" aria-pressed="'+(ui.tab==="songs")+'">'+ico.note+'Dalok</button></div></nav>';
 }
 function vHome(){
-  if(ui.tab==="sets") return '<div class="wrap"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+setsList()+acct()+'</div>'+tabs();
+  if(ui.tab==="sets") return '<div class="wrap"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+setsList()+'</div>'+tabs();
   return '<div class="wrap"><div class="top"></div><h1 class="h1">Dalok</h1><p class="sub">'+songs.size+' dal a daltárban</p>'+
   '<label class="search">'+ico.search+'<input id="q" type="search" placeholder="Cím vagy előadó" value="'+esc(ui.q)+'" autocomplete="off"></label><div id="songList">'+songsList()+'</div></div>'+tabs();
 }
@@ -497,7 +503,7 @@ function acct(){
 }
 function vLogin(){
   if(!API) return '<div class="wrap"><h1 class="h1">Chords</h1><div class="empty-state">Az app még nincs összekötve az adatbázissal.</div></div>';
-  return '<div class="wrap"><img class="brand" src="icons/icon-180.png" alt="" width="72" height="72"><h1 class="h1">Chords</h1><p class="sub">Lépj be a fiókoddal. Ezután a dalok offline is elérhetők.</p>'+
+  return '<div class="wrap"><img class="brand" src="icons/icon-180.png" alt="" width="72" height="72"><h1 class="h1">Chords</h1><p class="sub">Lépj be a fiókoddal.</p>'+
   '<form id="loginForm" class="card"><div class="field"><label for="l-email">E-mail</label><input id="l-email" type="email" autocomplete="username" autocapitalize="off" required value="'+esc(ui.login.email)+'"></div><div class="field"><label for="l-pw">Jelszó</label><input id="l-pw" type="password" autocomplete="current-password" required></div></form>'+
   (ui.login.err?'<p class="err">'+esc(ui.login.err)+'</p>':'')+
   '<button class="cta static" form="loginForm" type="submit"'+(ui.login.busy?" disabled":"")+'>'+(ui.login.busy?"Belépés…":"Belépés")+'</button></div>';
@@ -558,7 +564,7 @@ function vSet(){
   '<label class="eyebrow dateline">'+ico.cal+'<span id="s-dl">'+esc(dateLine(s,ids.length))+'</span><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum"></label>'+
   '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off">'+
   '<div class="list'+(rows?' grouped':'')+'">'+(rows?rows+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button>':emptyState("set"))+'</div>'+
-  (ids.length?'<p class="shint">Húzd balra a kivételhez. A ≡ jelet megfogva rendezheted a sorrendet. A hangnemre koppintva átírhatod erre az alkalomra.</p>':"")+
+
   ('<div class="card" style="margin-top:28px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
   '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
   (ui.picker?vPicker(s):"")+(ui.keyFor?vKeySheet(s):"");
@@ -568,7 +574,7 @@ function vKeySheet(s){
   const g=songs.get(ui.keyFor); if(!g) return "";
   const cur=(s.keys&&s.keys[g.id])||g.key||"";
   return '<div class="sheet-bg" data-act="closekey"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(g.title)+'</span><button class="link" data-act="closekey">Kész</button></div>'+
-  '<p class="sub" style="margin-bottom:12px">Hangnem ezen a setlisten'+(g.key?' · eredeti: '+esc(g.key):'')+'. A számok nem változnak, a betűvel írt akkordok igen.</p>'+
+  (g.key?'<p class="sub" style="margin-bottom:12px">eredeti: '+esc(g.key)+'</p>':'<div style="height:8px"></div>')+
   '<div class="kgrid">'+KEY12.map(k=>'<button class="kopt'+(k===cur?" on":"")+(k===g.key?" orig":"")+'" data-act="pickkey" data-v="'+k+'">'+k+'</button>').join("")+'</div></div>';
 }
 function vPicker(s){
@@ -607,7 +613,7 @@ function libList(){
 function vStageKey(id,s,cur){
   const st=ui.stage, base=stageBase(st,id), fromSet=base!==s.key;
   return '<div class="sheet-bg" data-act="goback"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(s.title)+'</span><button class="link" data-act="goback">Kész</button></div>'+
-  '<p class="sub" style="margin-bottom:12px">Csak most, a színpadi nézetben'+(base?' · '+(fromSet?'setlist: ':'eredeti: ')+esc(base):'')+(capoFor(base,cur)?' · most: capo '+capoFor(base,cur):'')+'. A számok nem változnak, a betűs akkordok igen.</p>'+
+  '<p class="sub" style="margin-bottom:12px">'+(base?(fromSet?'setlist: ':'eredeti: ')+esc(base):'')+(capoFor(base,cur)?' · most: capo '+capoFor(base,cur):'')+'&nbsp;</p>'+
   '<div class="kgrid">'+KEY12.map(k=>{const c=capoFor(base,k);return '<button class="kopt'+(k===cur?" on":"")+(k===base?(fromSet?" base":" orig"):"")+'" data-act="stagepick" data-v="'+k+'">'+k+(c?'<span class="cp">capo '+c+'</span>':'')+'</button>'}).join("")+'</div></div>';
 }
 function stageChart(id,cid){
