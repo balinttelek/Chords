@@ -66,11 +66,12 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);-webkit-transform:translateZ(0);transform:translateZ(0);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:8px}
 .tabs .tab{flex:1;max-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:10px}
 .tabs .tab[aria-pressed="true"]{color:var(--accent)}
-.tabs{flex-direction:column;align-items:center;gap:4px}
-.tabrow{display:flex;justify-content:center;align-items:center;gap:8px;width:100%}
-.tabadd{flex:none;width:52px;height:52px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;margin:0 18px}
-.tabadd:active{transform:scale(.95)}
-.tabs .acct{margin:2px 0 0;font-size:12.5px;gap:6px}
+/* the account line sits just above the tab bar's top line; the bar itself is unchanged */
+.tabs{flex-direction:column;align-items:stretch;gap:0;border-top:0;padding-top:0}
+.tabrow{display:flex;justify-content:center;gap:8px;border-top:1px solid var(--line);margin:0 -16px;padding:6px 16px 0}
+.tabs .acct{margin:0;padding:6px 0 8px;font-size:12.5px;gap:6px}
+.addcenter{display:grid;place-items:center;width:56px;height:56px;margin:18px auto 0;border-radius:18px;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 20px rgba(46,140,163,.28)}
+.addcenter:active{transform:scale(.95)}
 .fab{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(46,140,163,.30)}
 .cta{-webkit-transform:translateZ(0);transform:translateZ(0);position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(46,140,163,.28)}
 .titlein{font-family:var(--display);font-stretch:112%;font-size:30px;font-weight:800;letter-spacing:-.4px;border:0;background:none;outline:none;width:100%;padding:0;margin:6px 0 2px}
@@ -488,11 +489,11 @@ const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,pi
 /* ---------- views ---------- */
 function tabs(){
   return '<nav class="tabs">'+(ui.tab==="sets"?acct():'')+'<div class="tabrow"><button class="tab" data-act="tab" data-v="sets" aria-pressed="'+(ui.tab==="sets")+'">'+ico.list+'Setlistek</button>'+
-  '<button class="tabadd" data-act="new" aria-label="'+(ui.tab==="sets"?"Új setlist":"Új dal")+'">'+ico.plus+'</button>'+
-  '<button class="tab" data-act="tab" data-v="songs" aria-pressed="'+(ui.tab==="songs")+'">'+ico.note+'Dalok</button></div></nav>';
+  '<button class="tab" data-act="tab" data-v="songs" aria-pressed="'+(ui.tab==="songs")+'">'+ico.note+'Dalok</button></div></nav>'+
+  (ui.tab==="songs"?'<button class="fab" data-act="new" aria-label="Új dal">'+ico.plus+'</button>':'');
 }
 function vHome(){
-  if(ui.tab==="sets") return '<div class="wrap"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+setsList()+'</div>'+tabs();
+  if(ui.tab==="sets") return '<div class="wrap"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+setsList()+(sortedSets().length?'<button class="addcenter" data-act="new" aria-label="Új setlist">'+ico.plus+'</button>':'')+'</div>'+tabs();
   return '<div class="wrap"><div class="top"></div><h1 class="h1">Dalok</h1><p class="sub">'+songs.size+' dal a daltárban</p>'+
   '<label class="search">'+ico.search+'<input id="q" type="search" placeholder="Cím vagy előadó" value="'+esc(ui.q)+'" autocomplete="off"></label><div id="songList">'+songsList()+'</div></div>'+tabs();
 }
