@@ -291,7 +291,7 @@ function softRender(){
   if(!auth||ui.view==="edit"||ui.view==="stage"||gest) return;
   const ae=document.activeElement&&document.activeElement.id;
   if(ui.view==="home"&&ae==="q"){$("#songList").innerHTML=songsList();return}
-  if(ui.view==="set"&&/^(s-name|s-date|pq)$/.test(ae||"")){if(ui.picker)$("#pickList").innerHTML=pickList(setlists.get(ui.id)||{});return}
+  if(ui.view==="set"&&(ui.picker||ui.keyFor||/^(s-name|s-date)$/.test(ae||""))){if(ui.picker&&$("#pickList"))$("#pickList").innerHTML=pickList(setlists.get(ui.id)||{});return}
   render();
 }
 function statusText(){
@@ -386,7 +386,7 @@ function chartHTML(body,key,letters,opt){
 const coll=new Intl.Collator("hu");
 const sortedSongs=()=>[...songs.values()].sort((a,b)=>coll.compare(a.title||"",b.title||""));
 const sortedSets=()=>[...setlists.values()].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-function nextSunday(){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7));return d.toISOString().slice(0,10)}
+function nextSunday(){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7));const p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
 const fmtDate=s=>{if(!s)return"";const d=new Date(s+"T12:00");return isNaN(d)?s:d.toLocaleDateString("hu-HU",{month:"long",day:"numeric",weekday:"long"})};
 const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
@@ -450,7 +450,7 @@ function vEdit(){
    (ui.ocr?'<div class="ocrmsg'+(ui.ocr.err?" bad":"")+'">'+esc(ui.ocr.msg)+'</div>':''))+
   '<input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
   '<div class="card" style="margin-top:12px"><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
-  '<div class="field"><label for="f-key">Hangnem</label><select id="f-key"><option value="">nincs</option>'+KEYS.map(k=>'<option'+(k===d.key?" selected":"")+'>'+k+'</option>').join("")+'</select></div>'+
+  '<div class="field"><label for="f-key">Hangnem</label><select id="f-key"><option value="">nincs</option>'+(d.key&&!KEYS.includes(d.key)?[d.key]:[]).concat(KEYS).map(k=>'<option'+(k===d.key?" selected":"")+'>'+esc(k)+'</option>').join("")+'</select></div>'+
   '<div class="field"><label for="f-bpm">Tempó</label><input id="f-bpm" inputmode="numeric" value="'+esc(d.bpm)+'" placeholder="BPM"></div>'+
   '<div class="field"><label for="f-notes">Megjegyzés</label><input id="f-notes" value="'+esc(d.notes)+'" placeholder="effekt, capo, emlékeztető" autocomplete="off"></div></div>'+
   '<div class="label">Kotta</div><textarea class="chartin" id="f-body" placeholder="Verse: 1 4 1 6 4" spellcheck="false" autocapitalize="off" autocorrect="off">'+esc(d.body)+'</textarea>'+
@@ -533,7 +533,7 @@ let flying=false;
 function step(d){
   const st=ui.stage; if(!st||flying||!hasSong(d)) return;
   const card=$("#stCard");
-  const go=()=>{flying=false;st.i+=d;render()};
+  const go=()=>{flying=false;if(ui.stage!==st)return;st.i+=d;render()};
   const back=document.getElementById(d>0?"stNext":"stPrev");
   if(back&&!reduceMotion()){back.classList.add("show");back.style.transition="transform .22s ease-out, opacity .22s";back.style.transform="none";back.style.opacity="1"}
   if(!card||reduceMotion()){st.i+=d;render();return}
@@ -564,8 +564,8 @@ function endCard(e){
   quiet();
   const d=c.dx<0?1:-1, v=Math.abs(c.dx)/Math.max(1,performance.now()-c.t), card=$("#stCard");
   if((Math.abs(c.dx)>80||(v>.5&&Math.abs(c.dx)>40))&&hasSong(d)) return step(d);
-  if(card){card.style.transition="transform .3s cubic-bezier(.2,.9,.3,1.2)";card.style.transform="";setTimeout(()=>{card.classList.remove("moving");card.style.transition=""},300)}
-  document.querySelectorAll(".st-card.back.show").forEach(b=>{b.style.transition="transform .3s, opacity .3s";b.style.transform="";b.style.opacity="";setTimeout(()=>b.classList.remove("show"),300)});
+  if(card){card.style.transition="transform .3s cubic-bezier(.2,.9,.3,1.2)";card.style.transform="";setTimeout(()=>{if(!cd){card.classList.remove("moving");card.style.transition=""}},300)}
+  document.querySelectorAll(".st-card.back.show").forEach(b=>{b.style.transition="transform .3s, opacity .3s";b.style.transform="";b.style.opacity="";setTimeout(()=>{if(!cd)b.classList.remove("show")},300)});
 }
 document.addEventListener("pointerup",endCard);
 document.addEventListener("pointercancel",endCard);
@@ -577,7 +577,7 @@ function render(){
   const v=ui.view;
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
   document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor)?"hidden":"";
-  if(v==="stage"){requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit)}
+  if(v==="stage"){fit();requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit)}
 }
 function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
 
@@ -589,12 +589,12 @@ document.addEventListener("click",e=>{
   switch(a){
     case "tab": ui.tab=b.dataset.v; render(); window.scrollTo(0,0); break;
     case "home": go("home"); break;
-    case "back": go("home"); break;
+    case "back": {const y=ui.homeY||0;go("home");requestAnimationFrame(()=>window.scrollTo(0,y))} break;
     case "new":
       if(ui.tab==="sets"){const nid=newId("l");const d=nextSunday();put("setlists",nid,{name:"Vasárnap, "+new Date(d+"T12:00").toLocaleDateString("hu-HU",{month:"long",day:"numeric"}),date:d,songIds:[],updatedAt:Date.now()});go("set",{id:nid})}
       else go("edit",{draft:{id:null,title:"",artist:"",key:"",bpm:"",notes:"",body:""}});
       break;
-    case "opensong": go("song",{id}); break;
+    case "opensong": ui.homeY=window.scrollY; go("song",{id}); break;
     case "openset": go("set",{id}); break;
     case "edit": {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||""}})} break;
     case "canceledit": ui.ocr=null; ui.draft.id?go("song",{id:ui.draft.id}):go("home"); break;
@@ -621,7 +621,7 @@ document.addEventListener("click",e=>{
       $("#pickList").innerHTML=pickList(setlists.get(set.id))} break;
     case "playfrom": if(set) startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{}); break;
     case "playsong": startStage([ui.id],0); break;
-    case "exitstage": {const f=ui.stage.from;releaseScreen();ui.stage=null;go(f.view,{id:f.id})} break;
+    case "exitstage": {if(!ui.stage)break;const f=ui.stage.from;releaseScreen();ui.stage=null;go(f.view,{id:f.id})} break;
     case "prev": step(-1); break;
     case "next": step(1); break;
     case "letters": prefs.letters=!prefs.letters; savePrefs(); render(); break;
