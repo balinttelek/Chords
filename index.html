@@ -235,7 +235,7 @@ html{background:var(--bg)}
 .glist>.row+.row{box-shadow:inset 0 1px 0 var(--line)}
 .glist>.row:active{background:var(--sunk)}
 .noact .glist>.row:active{background:none}.noact .row:active{background:var(--surface)}.noact .sfront:active{background:var(--surface)}
-.glist .kchip{display:inline-grid;place-items:center}
+.kchip{display:inline-grid;place-items:center}
 .glist .check{margin-left:2px}
 .dstack{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;line-height:1}
 .dstack b{font-family:var(--display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
@@ -543,7 +543,8 @@ function songsList(){
   const q=norm(ui.q), arr=sortedSongs().filter(s=>!q||norm(s.title+" "+s.artist).includes(q));
   if(!songs.size) return emptyState("songs");
   if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
-  let out="",last="";
+  /* while searching there are no letter groups, so the results get one card of their own */
+  let out=q?'<div class="glist">':"",last="";
   for(const s of arr){
     const L=q?"":(norm(s.title)[0]||"#").toUpperCase();
     if(L!==last){out+=(out?'</div>':'')+(q?"":'<div class="letter">'+esc(L)+'</div>')+'<div class="glist">';last=L}
