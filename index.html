@@ -16,22 +16,22 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500..800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one calm column with a bottom tab bar; key tiles anchor every song row; the stage view is a separate black room that fits each chart as large as the phone allows. */
 :root{
   --bg:#F3F4F1; --surface:#FFFFFF; --sunk:#E8E9E5; --ink:#17191C; --muted:#6E7176; --line:#DCDDD8;
-  --accent:#E2551F; --accent-ink:#FFFFFF; --accent-soft:#FBE3D8; --danger:#C93A2B;
-  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --accent:#2E8CA3; --accent-ink:#FFFFFF; --accent-soft:#DCEFF3; --danger:#C93A2B;
+  --display:"Rubik","Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif;
   --body:"Figtree",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
   --r:14px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121315; --surface:#1C1D20; --sunk:#26282B; --ink:#F2F2EE; --muted:#9A9DA3; --line:#2E3034;
-  --accent:#FF7A3D; --accent-ink:#1A0D06; --accent-soft:#3A2116; --danger:#FF6B5B; color-scheme:dark}}
+  --accent:#73C4D6; --accent-ink:#06222A; --accent-soft:#16323A; --danger:#FF6B5B; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121315; --surface:#1C1D20; --sunk:#26282B; --ink:#F2F2EE; --muted:#9A9DA3; --line:#2E3034;
-  --accent:#FF7A3D; --accent-ink:#1A0D06; --accent-soft:#3A2116; --danger:#FF6B5B; color-scheme:dark}
+  --accent:#73C4D6; --accent-ink:#06222A; --accent-soft:#16323A; --danger:#FF6B5B; color-scheme:dark}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
@@ -63,8 +63,8 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:8px}
 .tabs .tab{flex:1;max-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted);border-radius:10px}
 .tabs .tab[aria-pressed="true"]{color:var(--accent)}
-.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(226,85,31,.32)}
-.cta{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(226,85,31,.3)}
+.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:56px;height:56px;border-radius:18px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 20px rgba(46,140,163,.30)}
+.cta{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;max-width:608px;margin:0 auto;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 8px 20px rgba(46,140,163,.28)}
 .titlein{font-family:var(--display);font-stretch:112%;font-size:30px;font-weight:800;letter-spacing:-.4px;border:0;background:none;outline:none;width:100%;padding:0;margin:6px 0 2px}
 .datein{border:0;background:none;color:var(--muted);font-size:16px;padding:0;margin-bottom:18px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
@@ -106,8 +106,8 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 
 /* stage */
 .stage{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--sbg);color:var(--sfg);
-  --sbg:#000;--sfg:#fff;--smuted:#8C8F94;--sacc:#FF7A3D;--sbtn:rgba(255,255,255,.12);user-select:none;-webkit-user-select:none;touch-action:pan-y}
-.stage.light{--sbg:#fff;--sfg:#000;--smuted:#5E6166;--sacc:#C8461A;--sbtn:rgba(0,0,0,.07)}
+  --sbg:#000;--sfg:#fff;--smuted:#8C8F94;--sacc:#73C4D6;--sbtn:rgba(255,255,255,.12);user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.stage.light{--sbg:#fff;--sfg:#000;--smuted:#5E6166;--sacc:#227A90;--sbtn:rgba(0,0,0,.07)}
 .stage .chart .lbl{color:var(--sacc)}
 .stage .chart .t.mark{color:var(--smuted)}
 .st-top{display:flex;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top,0px)) 10px 4px}
@@ -138,6 +138,16 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .acct button{color:var(--accent);font-weight:600}
 .stage{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 html{background:var(--bg)}
+.srow{position:relative;border-radius:var(--r);overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .18s ease}
+.srow.dragging{transition:none;z-index:5;box-shadow:0 12px 30px rgba(0,0,0,.2);overflow:visible}
+.sbg{position:absolute;inset:0;background:var(--danger);color:#fff;display:flex;align-items:center;gap:8px;padding-left:20px;font-weight:700;opacity:0;transition:opacity .12s}
+.srow.swiping .sbg{opacity:.7}.srow.armed .sbg{opacity:1}
+.sfront{position:relative;display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:var(--r);padding:10px 4px 10px 10px;min-height:60px;box-sizing:border-box;cursor:pointer}
+.grip{width:40px;height:44px;display:grid;place-items:center;color:var(--muted);touch-action:none;flex:none;cursor:grab}
+.shint{color:var(--muted);font-size:13px;text-align:center;margin:12px 8px 0;line-height:1.4}
+.toast{display:flex;align-items:center;gap:14px}
+.toast[hidden]{display:none}
+.tact{color:var(--accent-soft);font-weight:700;padding:4px 0}
 .upd{position:fixed;left:16px;right:16px;top:calc(10px + env(safe-area-inset-top,0px));z-index:70;max-width:608px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px;font-weight:600;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 </style>
 <script src="config.js"></script>
@@ -159,6 +169,8 @@ const ico={
   down:'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   x:'<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m2 2 10 10M12 2 2 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
   ok:'<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m2.5 7.5 3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  trash:'<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  grip:'<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   search:'<svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   list:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="6" r="1.4" fill="currentColor"/><circle cx="4" cy="12" r="1.4" fill="currentColor"/><circle cx="4" cy="18" r="1.4" fill="currentColor"/></svg>',
   note:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="16" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
@@ -185,7 +197,7 @@ let syncState="idle";
 function put(coll,id,data){const {id:_,...d}=data;store[coll][id]={data:d,updated_at:new Date().toISOString(),deleted:false};store.dirty[coll+"/"+id]=1;saveStore();rebuild();scheduleSync()}
 function del(coll,id){const r=store[coll][id];store[coll][id]={data:r?r.data:{},updated_at:new Date().toISOString(),deleted:true};store.dirty[coll+"/"+id]=1;saveStore();rebuild();scheduleSync()}
 const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-let tt;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600)}
+let tt;function toast(m,act){const t=$("#toast");t.innerHTML="";const s=document.createElement("span");s.textContent=m;t.appendChild(s);if(act){const b=document.createElement("button");b.type="button";b.className="tact";b.textContent=act.label;b.onclick=()=>{t.hidden=true;act.fn()};t.appendChild(b)}t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,act?5000:2600)}
 
 function setSession(j){auth={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Date.now()+(j.expires_in||3600)*1000,user_id:j.user?j.user.id:auth.user_id,email:j.user?j.user.email:auth.email};saveAuth()}
 async function authCall(grant,body){
@@ -242,7 +254,7 @@ function sync(){
   return syncing;
 }
 function softRender(){
-  if(!auth||ui.view==="edit"||ui.view==="stage") return;
+  if(!auth||ui.view==="edit"||ui.view==="stage"||gest) return;
   const ae=document.activeElement&&document.activeElement.id;
   if(ui.view==="home"&&ae==="q"){$("#songList").innerHTML=songsList();return}
   if(ui.view==="set"&&/^(s-name|s-date|pq)$/.test(ae||"")){if(ui.picker)$("#pickList").innerHTML=pickList(setlists.get(ui.id)||{});return}
@@ -404,13 +416,13 @@ function vSet(){
   const ids=(s.songIds||[]).filter(id=>songs.has(id));
   const rows=ids.map((id,i)=>{const g=songs.get(id);
     const lead='<span class="tile num">'+(i+1)+'</span>';
-    if(ui.editSet) return '<div class="row">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div><div class="t2">'+esc(g.key||"")+'</div></div><button class="ic" data-act="mv" data-i="'+i+'" data-d="-1" aria-label="Feljebb"'+(i===0?" disabled":"")+'>'+ico.up+'</button><button class="ic" data-act="mv" data-i="'+i+'" data-d="1" aria-label="Lejjebb"'+(i===ids.length-1?" disabled":"")+'>'+ico.down+'</button><button class="ic del" data-act="rm" data-i="'+i+'" aria-label="Kivétel">'+ico.x+'</button></div>';
-    return '<button class="row" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"")+'</div>'+tile(g)+'</button>'}).join("");
-  return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button><button class="link" data-act="toggleedit">'+(ui.editSet?"Kész":"Szerkesztés")+'</button></div>'+
+    return '<div class="srow" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"")+'</div>'+tile(g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
+  return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button></div>'+
   '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off"><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum">'+
   '<div class="list">'+(rows||'<div class="empty-state">Üres a lista. Adj hozzá dalokat.</div>')+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button></div>'+
-  (ui.editSet?'<div class="card" style="margin-top:20px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>':"")+
-  '</div>'+(ids.length&&!ui.editSet?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
+  (ids.length?'<p class="shint">Húzd jobbra a kivételhez. A ≡ jelet megfogva rendezheted a sorrendet.</p>':"")+
+  ('<div class="card" style="margin-top:28px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
+  '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
   (ui.picker?vPicker(s):"");
 }
 function vPicker(s){
@@ -461,6 +473,7 @@ function render(){
 function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
 
 document.addEventListener("click",e=>{
+  if(suppressClick){suppressClick=false;e.preventDefault();return}
   const b=e.target.closest("[data-act]"); if(!b||b.disabled) return;
   const a=b.dataset.act, id=b.dataset.id, i=+b.dataset.i;
   const set=ui.view==="set"?setlists.get(ui.id):null;
@@ -526,6 +539,63 @@ document.addEventListener("touchend",e=>{if(ui.view!=="stage"||tx===null)return;
   if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3){e.preventDefault();step(dx<0?1:-1)}},{passive:false});
 let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(fit,80)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&ui.view==="stage"){wake=null;lockScreen()}});
+
+/* ---------- setlist gestures: swipe right to remove, drag the grip (or long-press) to reorder ---------- */
+let gest=null, suppressClick=false;
+const setIds=()=>{const s=setlists.get(ui.id);return s?(s.songIds||[]).filter(x=>songs.has(x)):[]};
+function saveOrder(ids){const s=setlists.get(ui.id);if(s)put("setlists",s.id,{...s,songIds:ids,updatedAt:Date.now()})}
+function quiet(){suppressClick=true;setTimeout(()=>suppressClick=false,400)}
+function startDrag(){
+  const g=gest; if(!g) return; clearTimeout(g.lp); g.mode="drag";
+  g.rows=[...document.querySelectorAll(".srow")]; g.h=g.row.getBoundingClientRect().height+8; g.target=g.i;
+  g.row.classList.add("dragging"); try{g.row.setPointerCapture(g.id)}catch(_){}
+  if(navigator.vibrate) navigator.vibrate(10);
+}
+document.addEventListener("pointerdown",e=>{
+  if(ui.view!=="set"||ui.picker||(e.button&&e.button>0)) return;
+  const row=e.target.closest(".srow"); if(!row) return;
+  gest={row,front:row.querySelector(".sfront"),i:+row.dataset.i,x0:e.clientX,y0:e.clientY,mode:null,id:e.pointerId,dx:0};
+  if(e.target.closest(".grip")){startDrag();e.preventDefault();return}
+  gest.lp=setTimeout(()=>{if(gest&&!gest.mode)startDrag()},450);
+});
+document.addEventListener("pointermove",e=>{
+  const g=gest; if(!g||e.pointerId!==g.id) return;
+  const dx=e.clientX-g.x0, dy=e.clientY-g.y0;
+  if(g.mode==="drag"){
+    g.row.style.transform="translateY("+dy+"px)";
+    const t=Math.max(0,Math.min(g.rows.length-1,g.i+Math.round(dy/g.h)));
+    if(t!==g.target){g.target=t;g.rows.forEach((r,k)=>{if(k===g.i)return;let s=0;if(g.i<t&&k>g.i&&k<=t)s=-g.h;if(g.i>t&&k<g.i&&k>=t)s=g.h;r.style.transform=s?"translateY("+s+"px)":""})}
+    return;
+  }
+  if(!g.mode&&(Math.abs(dx)>8||Math.abs(dy)>8)){
+    clearTimeout(g.lp);
+    if(dx>0&&Math.abs(dx)>Math.abs(dy)*1.2){g.mode="swipe";g.row.classList.add("swiping")}else{gest=null;return}
+  }
+  if(g.mode==="swipe"){g.dx=Math.max(0,dx);g.front.style.transform="translateX("+g.dx+"px)";g.row.classList.toggle("armed",g.dx>g.row.offsetWidth*.35)}
+});
+function endGesture(e,cancel){
+  const g=gest; if(!g||e.pointerId!==g.id) return; clearTimeout(g.lp); gest=null;
+  if(g.mode==="drag"){
+    quiet(); g.rows.forEach(r=>r.style.transform=""); g.row.classList.remove("dragging");
+    if(!cancel&&g.target!==g.i){const ids=setIds();const [m]=ids.splice(g.i,1);ids.splice(g.target,0,m);saveOrder(ids)}
+    render(); return;
+  }
+  if(g.mode==="swipe"){
+    quiet();
+    if(!cancel&&g.dx>g.row.offsetWidth*.35){
+      g.front.style.transition="transform .18s ease-out";g.front.style.transform="translateX(110%)";
+      setTimeout(()=>{const ids=setIds(),prev=ids.slice(),[gone]=ids.splice(g.i,1);saveOrder(ids);render();
+        const s=songs.get(gone);toast((s?s.title:"Dal")+" kivéve",{label:"Visszavonás",fn:()=>{saveOrder(prev);render()}})},170);
+    }else{
+      g.front.style.transition="transform .2s ease-out";g.front.style.transform="";g.row.classList.remove("swiping","armed");
+      setTimeout(()=>{g.front.style.transition=""},220);
+    }
+  }
+}
+document.addEventListener("pointerup",e=>endGesture(e,false));
+document.addEventListener("pointercancel",e=>endGesture(e,true));
+document.addEventListener("touchmove",e=>{if(gest&&gest.mode)e.preventDefault()},{passive:false});
+document.addEventListener("contextmenu",e=>{if(e.target.closest(".srow"))e.preventDefault()});
 
 /* ---------- boot ---------- */
 document.addEventListener("submit",async e=>{
