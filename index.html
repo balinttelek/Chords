@@ -183,6 +183,7 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .st-bot .nk{color:var(--sacc);font-weight:800;font-size:16px}
 
 /* sheet */
+.sheet::before,.ksheet::before{content:"";display:block;flex:none;width:38px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 2px}
 .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40}
 .sheet{position:fixed;left:0;right:0;bottom:0;top:calc(48px + env(safe-area-inset-top,0px));background:var(--bg);border-radius:20px 20px 0 0;z-index:41;display:flex;flex-direction:column}
 .sheet .shead{flex:none;padding:6px 16px 0;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;border-bottom:1px solid var(--line)}
@@ -876,6 +877,28 @@ function endEdge(commit){
     setTimeout(()=>{a.style.transition="";dropUnder(a)},200)}
 }
 document.addEventListener("touchend",()=>endEdge(true));
+/* sheets (song picker, key pickers, stage library) can be pulled down to close, like iOS sheets */
+let pull=null;
+document.addEventListener("touchstart",e=>{
+  pull=null; if(edge||e.touches.length!==1) return;
+  const sh=e.target.closest(".sheet,.ksheet"); if(!sh) return;
+  const sc=e.target.closest(".inner"); if(sc&&sc.scrollTop>0) return;
+  const t=e.touches[0]; pull={sh,bg:document.querySelector(".sheet-bg"),y:t.clientY,x:t.clientX,dy:0,on:false,t0:Date.now(),sc};
+},{passive:true});
+document.addEventListener("touchmove",e=>{
+  const p=pull; if(!p) return; const t=e.touches[0], dy=t.clientY-p.y, dx=t.clientX-p.x;
+  if(!p.on){ if(dy>8&&dy>Math.abs(dx)*1.2&&!(p.sc&&p.sc.scrollTop>0)){p.on=true;p.y=t.clientY;p.sh.style.animation="none"} else if(Math.abs(dx)>8||dy<-8){pull=null;return} else return }
+  e.preventDefault(); p.dy=Math.max(0,t.clientY-p.y);
+  p.sh.style.transition="none"; p.sh.style.transform="translateY("+p.dy+"px)";
+  if(p.bg){p.bg.style.transition="none";p.bg.style.opacity=String(Math.max(0,1-p.dy/(p.sh.offsetHeight||400)))}
+},{passive:false});
+function endPull(){
+  const p=pull; pull=null; if(!p||!p.on) return; quiet();
+  const fast=p.dy>40&&p.dy/Math.max(1,Date.now()-p.t0)>.5;
+  if(p.dy>110||fast){p.sh.style.transition="transform .2s ease-out";p.sh.style.transform="translateY(100%)";if(p.bg){p.bg.style.transition="opacity .2s";p.bg.style.opacity="0"}setTimeout(()=>history.back(),190)}
+  else{p.sh.style.transition="transform .2s ease-out";p.sh.style.transform="";if(p.bg){p.bg.style.transition="opacity .2s";p.bg.style.opacity=""}}
+}
+document.addEventListener("touchend",endPull);document.addEventListener("touchcancel",endPull);
 document.addEventListener("touchcancel",()=>endEdge(false));
 
 /* ---------- import: Notes text or a screenshot of it ---------- */
