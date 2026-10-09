@@ -140,13 +140,29 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 html{background:var(--bg)}
 .srow{position:relative;border-radius:var(--r);overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .18s ease}
 .srow.dragging{transition:none;z-index:5;box-shadow:0 12px 30px rgba(0,0,0,.2);overflow:visible}
-.sbg{position:absolute;inset:0;background:var(--danger);color:#fff;display:flex;align-items:center;gap:8px;padding-left:20px;font-weight:700;opacity:0;transition:opacity .12s}
+.sbg{position:absolute;inset:0;background:var(--danger);color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:20px;font-weight:700;opacity:0;transition:opacity .12s}
 .srow.swiping .sbg{opacity:.7}.srow.armed .sbg{opacity:1}
 .sfront{position:relative;display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:var(--r);padding:10px 4px 10px 10px;min-height:60px;box-sizing:border-box;cursor:pointer}
+.sfront .main{flex:1;min-width:0}
 .grip{width:40px;height:44px;display:grid;place-items:center;color:var(--muted);touch-action:none;flex:none;cursor:grab}
 .shint{color:var(--muted);font-size:13px;text-align:center;margin:12px 8px 0;line-height:1.4}
 .toast{display:flex;align-items:center;gap:14px}
 .toast[hidden]{display:none}
+.kbtn{border:0;cursor:pointer}
+.kbtn.over{background:var(--accent);color:var(--accent-ink)}
+.ksheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--bg);border-radius:20px 20px 0 0;padding:6px 16px calc(24px + env(safe-area-inset-bottom,0px));max-width:640px;margin:0 auto;box-sizing:border-box}
+.kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kopt{height:58px;border-radius:14px;background:var(--surface);font-family:var(--display);font-weight:700;font-size:22px;position:relative}
+.kopt.orig::after{content:"eredeti";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
+.kopt.on{background:var(--accent);color:var(--accent-ink)}
+.kopt.on.orig::after{color:inherit}
+.chart .kbig{grid-column:1/-1;font-size:max(1em,64px);line-height:1;margin-bottom:.22em;display:flex;align-items:baseline;gap:.25em}
+.chart .klbl{font-family:var(--body);font-size:.26em;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sacc,var(--accent))}
+.chart .korig{font-family:var(--body);font-size:.22em;font-weight:600;color:var(--smuted,var(--muted));margin-left:.4em}
+.imp{display:flex;gap:8px;margin:4px 0 10px;flex-wrap:wrap}
+.impbtn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:15px;border-radius:12px;padding:10px 14px;cursor:pointer}
+.ocrmsg{background:var(--surface);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--muted);margin-bottom:8px;line-height:1.4}
+.ocrmsg.bad{color:var(--danger)}
 .tact{color:var(--accent-soft);font-weight:700;padding:4px 0}
 .upd{position:fixed;left:16px;right:16px;top:calc(10px + env(safe-area-inset-top,0px));z-index:70;max-width:608px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px;font-weight:600;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 </style>
@@ -169,6 +185,8 @@ const ico={
   down:'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   x:'<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m2 2 10 10M12 2 2 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
   ok:'<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m2.5 7.5 3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  image:'<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="2" fill="currentColor"/><path d="m21 16-5-5-9 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  paste:'<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   trash:'<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   grip:'<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   search:'<svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
@@ -188,7 +206,7 @@ let songs=new Map(), setlists=new Map();
 const live=coll=>new Map(Object.entries(store[coll]).filter(([,r])=>!r.deleted).map(([k,r])=>[k,{...r.data,id:k}]));
 function rebuild(){songs=live("songs");setlists=live("setlists")}
 rebuild();
-const ui={view:"home",tab:"sets",q:"",id:null,draft:null,editSet:false,picker:false,pq:"",confirmDel:false,stage:null,login:{email:"",err:"",busy:false},confirmOut:false};
+const ui={keyFor:null,ocr:null,view:"home",tab:"sets",q:"",id:null,draft:null,editSet:false,picker:false,pq:"",confirmDel:false,stage:null,login:{email:"",err:"",busy:false},confirmOut:false};
 let prefs={letters:false,light:false};
 try{Object.assign(prefs,JSON.parse(localStorage.getItem(PREF)||"{}"))}catch(e){}
 const savePrefs=()=>{try{localStorage.setItem(PREF,JSON.stringify(prefs))}catch(e){}};
@@ -319,20 +337,31 @@ function fmtNum(txt){
   let h=m&&m[2]?esc(m[1])+'<span class="q">'+esc(m[2])+'</span>'+esc(m[3]):esc(main);
   return h+(bass?'<span class="sl">'+esc(bass)+'</span>':"");
 }
-function cell(t,key,letters){
-  const k=tokKind(t);
+/* letter chords move with a changed key; numbers never change */
+function noteName(pc,key){return (flatKey(key)?FL:SH)[(pc%12+12)%12]}
+function transposeLtr(tok,from,to){
+  const f=keyPc(from),t=keyPc(to); if(f===null||t===null||f===t) return tok;
+  const d=t-f, nm=(r,a)=>{let p=r==="B"&&a==="b"?10:NAT[r]+(a==="#"?1:a==="b"?-1:0);return noteName(p+d,to)};
+  const m=/^(\(?)([A-H])(#|b)?(.*?)(?:\/([A-H])(#|b)?)?(\)?)$/.exec(tok); if(!m) return tok;
+  return m[1]+nm(m[2],m[3])+m[4]+(m[5]?"/"+nm(m[5],m[6]):"")+m[7];
+}
+function cell(t,key,letters,to){
+  const k=tokKind(t), shown=to||key;
   if(k==="gap") return {cls:"",html:""};
   if(k==="mark") return {cls:"mark",html:esc(t)};
-  if(k==="ltr") return {cls:"ltr",html:fmtNum(t)};
-  const txt=letters?(toLetter(t,key)||t):t;
+  if(k==="ltr") return {cls:"ltr",html:fmtNum(to&&key?transposeLtr(t,key,to):t)};
+  const txt=letters?(toLetter(t,shown)||t):t;
   return {cls:"",html:fmtNum(txt)};
 }
-function chartHTML(body,key,letters){
+function chartHTML(body,key,letters,opt){
+  opt=opt||{}; const to=opt.to&&opt.to!==key?opt.to:"";
   const secs=parse(body);
   if(!secs.length) return '<div class="empty-state">Még nincs kotta ehhez a dalhoz.</div>';
-  return '<div class="chart">'+secs.map(s=>{
+  const shown=to||key;
+  const kb=opt.bigKey&&shown?'<div class="kbig"><span class="klbl">Key</span>'+esc(shown)+(to&&key?'<span class="korig">eredeti: '+esc(key)+'</span>':'')+'</div>':'';
+  return '<div class="chart">'+kb+secs.map(s=>{
     const n=Math.max(1,...s.rows.map(r=>r.length));
-    const rows=s.rows.map(r=>r.map((t,i)=>{const c=cell(t,key,letters);return '<span class="t'+(i===0?" first":"")+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join("")).join("");
+    const rows=s.rows.map(r=>r.map((t,i)=>{const c=cell(t,key,letters,to);return '<span class="t'+(i===0?" first":"")+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join("")).join("");
     return '<div class="sec"><div class="lbl">'+esc(s.label)+'</div><div class="rows" style="--n:'+n+'">'+rows+'</div></div>';
   }).join("")+'</div>';
 }
@@ -345,8 +374,9 @@ function nextSunday(){const d=new Date();d.setDate(d.getDate()+((7-d.getDay())%7
 const fmtDate=s=>{if(!s)return"";const d=new Date(s+"T12:00");return isNaN(d)?s:d.toLocaleDateString("hu-HU",{month:"long",day:"numeric",weekday:"long"})};
 const songMeta=s=>[s.artist,s.bpm?s.bpm+" BPM":""].filter(Boolean).join(" · ");
 const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="tile kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
-const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false},extra||{});render();window.scrollTo(0,0)};
+const go=(view,extra)=>{Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
 /* ---------- views ---------- */
 function tabs(){
@@ -400,6 +430,8 @@ function vSong(){
 function vEdit(){
   const d=ui.draft;
   return '<div class="wrap"><div class="top"><button class="link" data-act="canceledit">Mégse</button><button class="link" data-act="saveedit">Mentés</button></div>'+
+  (d.id?'':'<div class="imp"><label class="impbtn" for="f-img">'+ico.image+' Képernyőképből</label><input id="f-img" type="file" accept="image/*" hidden><button class="impbtn" data-act="paste">'+ico.paste+' Beillesztés</button></div>'+
+   (ui.ocr?'<div class="ocrmsg'+(ui.ocr.err?" bad":"")+'">'+esc(ui.ocr.msg)+'</div>':''))+
   '<input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
   '<div class="card" style="margin-top:12px"><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
   '<div class="field"><label for="f-key">Hangnem</label><select id="f-key"><option value="">nincs</option>'+KEYS.map(k=>'<option'+(k===d.key?" selected":"")+'>'+k+'</option>').join("")+'</select></div>'+
@@ -416,14 +448,22 @@ function vSet(){
   const ids=(s.songIds||[]).filter(id=>songs.has(id));
   const rows=ids.map((id,i)=>{const g=songs.get(id);
     const lead='<span class="tile num">'+(i+1)+'</span>';
-    return '<div class="srow" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"")+'</div>'+tile(g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
+    return '<div class="srow" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"")+'</div>'+setTile(s,g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
   return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button></div>'+
   '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off"><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum">'+
   '<div class="list">'+(rows||'<div class="empty-state">Üres a lista. Adj hozzá dalokat.</div>')+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button></div>'+
-  (ids.length?'<p class="shint">Húzd jobbra a kivételhez. A ≡ jelet megfogva rendezheted a sorrendet.</p>':"")+
+  (ids.length?'<p class="shint">Húzd balra a kivételhez. A ≡ jelet megfogva rendezheted a sorrendet. A hangnemre koppintva átírhatod erre az alkalomra.</p>':"")+
   ('<div class="card" style="margin-top:28px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
   '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
-  (ui.picker?vPicker(s):"");
+  (ui.picker?vPicker(s):"")+(ui.keyFor?vKeySheet(s):"");
+}
+const KEY12=["C","Db","D","Eb","E","F","F#","G","Ab","A","B","H"];
+function vKeySheet(s){
+  const g=songs.get(ui.keyFor); if(!g) return "";
+  const cur=(s.keys&&s.keys[g.id])||g.key||"";
+  return '<div class="sheet-bg" data-act="closekey"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(g.title)+'</span><button class="link" data-act="closekey">Kész</button></div>'+
+  '<p class="sub" style="margin-bottom:12px">Hangnem ezen a setlisten'+(g.key?' · eredeti: '+esc(g.key):'')+'. A számok nem változnak, a betűvel írt akkordok igen.</p>'+
+  '<div class="kgrid">'+KEY12.map(k=>'<button class="kopt'+(k===cur?" on":"")+(k===g.key?" orig":"")+'" data-act="pickkey" data-v="'+k+'">'+k+'</button>').join("")+'</div></div>';
 }
 function vPicker(s){
   return '<div class="sheet-bg" data-act="closepicker"></div><div class="sheet" role="dialog" aria-label="Dal hozzáadása"><div class="inner"><div class="top"><span style="font-weight:700">Dal hozzáadása</span><button class="link" data-act="closepicker">Kész</button></div>'+
@@ -439,11 +479,11 @@ function pickList(s){
 function vStage(){
   const st=ui.stage, id=st.list[st.i], s=songs.get(id)||{title:"?",body:""};
   const prev=st.list[st.i-1]&&songs.get(st.list[st.i-1]), next=st.list[st.i+1]&&songs.get(st.list[st.i+1]);
-  const sub=[s.key?"Key: "+s.key:"",s.bpm?s.bpm+" BPM":"",s.notes].filter(Boolean).join(" · ");
+  const sub=[s.bpm?s.bpm+" BPM":"",s.notes].filter(Boolean).join(" · ");
   return '<div class="stage'+(prefs.light?" light":"")+'" id="stage"><div class="st-top"><button class="sbtn" data-act="exitstage">Kész</button>'+
   '<div class="info"><b>'+(st.list.length>1?(st.i+1)+"/"+st.list.length+"  ":"")+esc(s.title)+'</b><span>'+esc(sub)+'</span></div>'+
   '<button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"Sötét":"Világos")+'</button></div>'+
-  '<div class="st-area" id="stArea">'+chartHTML(s.body,s.key,prefs.letters).replace('class="chart"','id="stChart" class="chart"')+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
+  '<div class="st-area" id="stArea">'+chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],bigKey:true}).replace('class="chart"','id="stChart" class="chart"')+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
   '<div class="st-bot"><span>'+(prev?"‹ "+esc(prev.title):"")+'</span><span class="nx">'+(next?"Következő: "+esc(next.title)+" ›":(st.list.length>1?"Vége":""))+'</span></div></div>';
 }
 function fit(){
@@ -460,14 +500,14 @@ let wake=null;
 async function lockScreen(){try{if("wakeLock" in navigator&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>wake=null)}}catch(e){}}
 function releaseScreen(){try{wake&&wake.release()}catch(e){}wake=null}
 function step(d){const st=ui.stage;if(!st)return;const n=st.i+d;if(n<0||n>=st.list.length)return;st.i=n;render()}
-function startStage(list,i){ui.stage={list,i,from:{view:ui.view,id:ui.id}};ui.view="stage";render();lockScreen()}
+function startStage(list,i,keys){$("#toast").hidden=true;ui.stage={list,i,keys:keys||{},from:{view:ui.view,id:ui.id}};ui.view="stage";render();lockScreen()}
 
 /* ---------- render ---------- */
 function render(){
   if(!auth){$("#app").innerHTML=vLogin();document.body.style.overflow="";return}
   const v=ui.view;
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
-  document.body.style.overflow=(v==="stage"||ui.picker)?"hidden":"";
+  document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor)?"hidden":"";
   if(v==="stage"){requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit)}
 }
 function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
@@ -488,8 +528,9 @@ document.addEventListener("click",e=>{
     case "opensong": go("song",{id}); break;
     case "openset": go("set",{id}); break;
     case "edit": {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||""}})} break;
-    case "canceledit": ui.draft.id?go("song",{id:ui.draft.id}):go("home"); break;
-    case "saveedit": {readDraft();const d=ui.draft,sid=d.id||newId("s");put("songs",sid,{title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()});go("song",{id:sid})} break;
+    case "canceledit": ui.ocr=null; ui.draft.id?go("song",{id:ui.draft.id}):go("home"); break;
+    case "paste": (async()=>{try{const t=await navigator.clipboard.readText();if(!t.trim())throw 0;applyImport(t,"Beillesztve. Nézd át, és ha jó, nyomd meg a Mentést.")}catch(_){ui.ocr={msg:"Nem sikerült beilleszteni. Másold ki a jegyzet szövegét, és próbáld újra.",err:1};render()}})(); break;
+    case "saveedit": {ui.ocr=null;readDraft();const d=ui.draft,sid=d.id||newId("s");put("songs",sid,{title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()});go("song",{id:sid})} break;
     case "askdel": ui.confirmDel=true; render(); break;
     case "nodel": ui.confirmDel=false; render(); break;
     case "dodelsong": del("songs",ui.draft.id); ui.tab="songs"; go("home"); toast("Dal törölve"); break;
@@ -500,11 +541,16 @@ document.addEventListener("click",e=>{
       put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});render()} break;
     case "picker": ui.picker=true; ui.pq=""; render(); break;
     case "closepicker": ui.picker=false; render(); break;
+    case "keyfor": ui.keyFor=id; render(); break;
+    case "closekey": ui.keyFor=null; render(); break;
+    case "pickkey": {const g=songs.get(ui.keyFor),keys={...(set.keys||{})};
+      if(!g||b.dataset.v===g.key) delete keys[ui.keyFor]; else keys[ui.keyFor]=b.dataset.v;
+      put("setlists",set.id,{...set,keys,updatedAt:Date.now()}); ui.keyFor=null; render()} break;
     case "pick": {const ids=[...(set.songIds||[])].filter(x=>songs.has(x));const k=ids.indexOf(id);
       if(k>=0) ids.splice(k,1); else ids.push(id);
       put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});
       $("#pickList").innerHTML=pickList(setlists.get(set.id))} break;
-    case "playfrom": if(set&&!ui.editSet) startStage((set.songIds||[]).filter(x=>songs.has(x)),i); break;
+    case "playfrom": if(set) startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{}); break;
     case "playsong": startStage([ui.id],0); break;
     case "exitstage": {const f=ui.stage.from;releaseScreen();ui.stage=null;go(f.view,{id:f.id})} break;
     case "prev": step(-1); break;
@@ -540,6 +586,58 @@ document.addEventListener("touchend",e=>{if(ui.view!=="stage"||tx===null)return;
 let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(fit,80)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&ui.view==="stage"){wake=null;lockScreen()}});
 
+/* ---------- import: Notes text or a screenshot of it ---------- */
+const KEYMAP={C:"C","C#":"C#",DB:"Db",D:"D","D#":"Eb",EB:"Eb",E:"E",F:"F","F#":"F#",GB:"Gb",G:"G","G#":"Ab",AB:"Ab",A:"A","A#":"B",BB:"B",B:"B",H:"H"};
+function importText(text){
+  const lines=String(text).replace(/\uFFFC/g,"").split(/\r?\n/).map(l=>l.replace(/[\t\u00A0]+/g," ").trim());
+  let title="",key="",body=[],started=false;
+  const ki=lines.findIndex(l=>/^keys?\s*:/i.test(l));
+  if(ki>0){let j=ki-1;while(j>=0&&!lines[j])j--;if(j>=0){title=lines[j].replace(/:\s*$/,"");started=true;lines.splice(0,j+1)}}
+  for(let l of lines){
+    if(!started){ if((l.match(/[A-Za-zÀ-ž]/g)||[]).length>=3&&!/^keys?\s*:/i.test(l)){title=l.replace(/:\s*$/,"");started=true} continue }
+    const km=/^keys?\s*:\s*([A-Ha-h])([#b]?)/i.exec(l);
+    if(km&&!key){key=KEYMAP[(km[1].toUpperCase()+km[2]).toUpperCase()]||"";const rest=l.replace(/^keys?\s*:\s*\S+\s*/i,"");if(rest)body.push(rest);continue}
+    if(!l) continue;
+    l=l.replace(/:(?=\S)/,": ");
+    const ci=l.indexOf(":"), head=ci>0?l.slice(0,ci+1):"", tail=ci>0?l.slice(ci+1):l;
+    const toks=tail.trim().split(/\s+/).filter(Boolean).flatMap(t=>{
+      if(/^[lI|]$/.test(t)) return ["1"];
+      if(/^[1-7]{2,}$/.test(t)) return t.split("");
+      return [t];
+    });
+    const chordish=toks.some(t=>/^\(?[b#]?[1-7]/.test(t));
+    body.push(chordish||head?(head?head+" ":"")+toks.join(" "):l);
+  }
+  return {title,key,body:body.join("\n").trim()};
+}
+function applyImport(text,msg){
+  const r=importText(text); if(!r.title&&!r.body){ui.ocr={msg:"Nem találtam szöveget a képen.",err:1};render();return}
+  readDraft(); Object.assign(ui.draft,{title:r.title||ui.draft.title,key:r.key||ui.draft.key,body:r.body||ui.draft.body});
+  ui.ocr={msg}; render();
+}
+let tessP=null;
+function loadTess(){
+  if(window.Tesseract) return Promise.resolve();
+  return tessP||(tessP=new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=ok;s.onerror=()=>{tessP=null;no(new Error("load"))};document.head.appendChild(s)}));
+}
+async function prepImage(file){
+  const url=URL.createObjectURL(file); const img=new Image(); img.src=url; await img.decode();
+  const sc=img.width<1400?2:1, c=document.createElement("canvas"); c.width=img.width*sc; c.height=img.height*sc;
+  const x=c.getContext("2d"); x.filter="grayscale(1) contrast(1.15)"; x.drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+  return c;
+}
+async function ocrFile(file){
+  ui.ocr={msg:"Szöveg felismerése a képről… Az első alkalommal ez fél percig is eltarthat."}; readDraft(); render();
+  try{
+    await loadTess(); const canvas=await prepImage(file);
+    const w=await Tesseract.createWorker("eng+hun");
+    await w.setParameters({tessedit_pageseg_mode:"6"});
+    const {data}=await w.recognize(canvas); await w.terminate();
+    applyImport(data.text,"Kész. A felismerés nem tökéletes: nézd át a számokat, mielőtt mented.");
+  }catch(e){ui.ocr={msg:navigator.onLine?"Nem sikerült feldolgozni a képet. Próbáld újra, vagy használd a Beillesztést.":"A képfelismeréshez internet kell.",err:1};render()}
+}
+document.addEventListener("change",e=>{if(e.target.id==="f-img"&&e.target.files[0]){ocrFile(e.target.files[0]);e.target.value=""}});
+
 /* ---------- setlist gestures: swipe right to remove, drag the grip (or long-press) to reorder ---------- */
 let gest=null, suppressClick=false;
 const setIds=()=>{const s=setlists.get(ui.id);return s?(s.songIds||[]).filter(x=>songs.has(x)):[]};
@@ -569,9 +667,9 @@ document.addEventListener("pointermove",e=>{
   }
   if(!g.mode&&(Math.abs(dx)>8||Math.abs(dy)>8)){
     clearTimeout(g.lp);
-    if(dx>0&&Math.abs(dx)>Math.abs(dy)*1.2){g.mode="swipe";g.row.classList.add("swiping")}else{gest=null;return}
+    if(dx<0&&Math.abs(dx)>Math.abs(dy)*1.2){g.mode="swipe";g.row.classList.add("swiping")}else{gest=null;quiet();return}
   }
-  if(g.mode==="swipe"){g.dx=Math.max(0,dx);g.front.style.transform="translateX("+g.dx+"px)";g.row.classList.toggle("armed",g.dx>g.row.offsetWidth*.35)}
+  if(g.mode==="swipe"){g.dx=Math.max(0,-dx);g.front.style.transform="translateX("+(-g.dx)+"px)";g.row.classList.toggle("armed",g.dx>g.row.offsetWidth*.35)}
 });
 function endGesture(e,cancel){
   const g=gest; if(!g||e.pointerId!==g.id) return; clearTimeout(g.lp); gest=null;
@@ -583,7 +681,7 @@ function endGesture(e,cancel){
   if(g.mode==="swipe"){
     quiet();
     if(!cancel&&g.dx>g.row.offsetWidth*.35){
-      g.front.style.transition="transform .18s ease-out";g.front.style.transform="translateX(110%)";
+      g.front.style.transition="transform .18s ease-out";g.front.style.transform="translateX(-110%)";
       setTimeout(()=>{const ids=setIds(),prev=ids.slice(),[gone]=ids.splice(g.i,1);saveOrder(ids);render();
         const s=songs.get(gone);toast((s?s.title:"Dal")+" kivéve",{label:"Visszavonás",fn:()=>{saveOrder(prev);render()}})},170);
     }else{
