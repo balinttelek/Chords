@@ -662,6 +662,8 @@ function render(){
   const v=ui.view;
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
   document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor||ui.stageKey||ui.stageLib)?"hidden":"";
+  /* iOS paints the strip under the home bar with the page background, not the stage's; match it so a dark stage stays black on a light-mode phone */
+  {const sb=v==="stage"?(prefs.light?"#fff":"#000"):""; document.documentElement.style.background=sb; document.body.style.background=sb}
   if(v==="stage"){fit();requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);watchArea()}
   else if(areaRO) areaRO.disconnect();
 }
