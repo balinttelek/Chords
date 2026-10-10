@@ -225,6 +225,15 @@ html{background:var(--bg)}
 .grouped .addrow{border:0;border-top:1px solid var(--line);border-radius:0 0 16px 16px;justify-content:flex-start;padding:0 16px;height:56px;gap:14px}
 .grouped+.shint{text-align:left;margin:12px 16px 0}
 .cov{flex:none;width:46px;height:46px;border-radius:10px;background:var(--sunk) center/cover no-repeat;display:grid;place-items:center;color:var(--muted);font-family:var(--display);font-weight:800;font-size:18px}
+.covfield{width:100%;text-align:left;gap:12px;padding:10px 14px 10px 12px}
+.covfield .cvl{width:auto;flex:1;color:var(--muted);font-size:15px}
+.covfield .cvv{color:var(--accent);font-weight:600;font-size:16px}
+.covfield svg{color:var(--muted);opacity:.7}
+.cgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.citem{display:flex;flex-direction:column;gap:6px;text-align:left;min-width:0}
+.citem .cov{width:100%;height:auto;aspect-ratio:1;border-radius:12px}
+.citem .t1{font-size:14.5px}.citem .t2{font-size:12.5px;margin-top:0}
+.citem:active .cov{opacity:.7}
 .cov.sm{width:40px;height:40px;border-radius:9px;font-size:16px}
 .grouped .sfront{padding-left:10px}.glist>.row{padding-left:10px}
 .snum{width:18px;flex:none;color:var(--muted);font-family:var(--display);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
@@ -505,15 +514,15 @@ function dateLine(s,n){const d=s.date?new Date(s.date+"T12:00"):null;
   return (d&&!isNaN(d)?WD[d.getDay()]+' · '+d.toLocaleDateString("hu-HU",{year:"numeric",month:"short",day:"numeric"}):'Dátum megadása')+' · '+n+' dal'}
 const fmtDate=s=>{if(!s)return"";const d=new Date(s+"T12:00");return isNaN(d)?s:d.toLocaleDateString("hu-HU",{month:"long",day:"numeric",weekday:"long"})};
 /* ---------- album covers: looked up once per song from the Apple search, then stored with the song ---------- */
-const COVERQ={"Agnus Dei": "Agnus Dei Michael W. Smith", "Anthem planetshakers": "Anthem Planetshakers Limitless", "Arms open wide": "Arms Open Wide Hillsong UNITED", "At the cross (Keresztednél)": "At the Cross Hillsong Worship", "Awesome God": "Awesome God Rich Mullins", "Beautiful exchange": "Beautiful Exchange Hillsong Worship", "Echoes": "Echoes Til Nothing Remains Elevation Worship", "Fathers house": "Fathers House Cory Asbury", "For who you are": "For Who You Are Hillsong Worship", "Forever": "Forever Kari Jobe", "From the inside out": "From the Inside Out Hillsong UNITED", "Glorious Ruins": "Glorious Ruins Hillsong", "Go": "Go Hillsong", "Good Grace": "Good Grace Hillsong UNITED", "Goodness of God": "Goodness of God Bethel Music", "Heart of worship": {"q": "Heart of Worship Matt Redman Sing Like Never Before", "al": "Sing Like Never Before", "ar": "Matt Redman"}, "Here again": "Here Again Elevation Worship", "Here i am to worship": {"q": "Here I Am to Worship Hillsong Ultimate Worship", "al": "Ultimate Worship", "ar": "Hillsong Worship"}, "Holy forever": "Holy Forever Chris Tomlin", "Hosanna": "Hosanna Hillsong UNITED", "Hova mennék": "Hova mennék Ararat Worship", "How great is our God": {"q": "How Great Is Our God Chris Tomlin Essential Collection", "al": "Essential Collection", "ar": "Chris Tomlin"}, "I thank God": "I Thank God Maverick City Music", "Irgalma éltet (Mercy)": "Mercy Elevation Worship", "It is well": {"q": "It Is Well Bethel You Make Me Brave", "al": "You Make Me Brave", "ar": "Bethel Music"}, "King of my heart": "King of My Heart Bethel Music", "Légy tűz / What a beautiful name": "What a Beautiful Name Hillsong Worship", "Like an avalanche": "Like an Avalanche Hillsong UNITED", "Like incense": "Like Incense Sometimes by Step Hillsong", "Lord send revival": {"q": "Lord Send Revival Live Hillsong Young Free", "al": "", "ar": "Hillsong Young & Free", "live": 1}, "Magnificent": "Magnificent Hillsong", "Mily nagy Istenünk": {"q": "How Great Is Our God Chris Tomlin Essential Collection", "al": "Essential Collection", "ar": "Chris Tomlin"}, "More love more power": "More Love More Power Michael W. Smith", "More than life": "More Than Life Hillsong UNITED", "No longer slaves": {"q": "No Longer Slaves Bethel We Will Not Be Shaken", "al": "We Will Not Be Shaken", "ar": "Bethel Music"}, "O praise the name": {"q": "O Praise the Name Anastasis Hillsong Worship Open Heaven River Wild", "al": "Open Heaven", "ar": "Hillsong Worship"}, "One way": {"q": "One Way Hillsong UNITED I Heart Revolution", "al": "Heart Revolution", "ar": "Hillsong UNITED"}, "Open heaven": "Open Heaven River Wild Hillsong", "Promises (Ígéretek)": {"q": "Ígéretek Agapé Worship Live Session", "al": "Live Session", "ar": "Agapé Worship"}, "Real love": "Real Love Hillsong Young Free", "Reckless love": {"q": "Reckless Love Bethel Music Peace", "al": "Peace", "ar": "Bethel Music"}, "Relentless remix": "Relentless Hillsong UNITED Madison Square Garden", "Revelation song": "Revelation Song Kari Jobe", "Shout to the Lord": "Shout to the Lord Hillsong", "Still": "Still Hillsong Worship", "The stand / B. E.": "The Stand Hillsong UNITED", "This i believe": "This I Believe The Creed Hillsong Worship", "This is living": "This Is Living Hillsong Young Free", "This is our God": "This Is Our God Hillsong", "Through it all": "Through It All Hillsong", "Touch of heaven": "Touch of Heaven Hillsong Worship", "Trust in God": "Trust in God Elevation Worship", "Waiting here for You": {"q": "Waiting Here for You Hillsong Worship Team Night", "al": "Team Night", "ar": "Hillsong Worship"}, "We fall down": "We Fall Down Chris Tomlin", "Who you say i am": {"q": "Who You Say I Am Hillsong Worship There Is More", "al": "There Is More", "ar": "Hillsong Worship"}, "Whole heart": "Whole Heart Hold Me Now Hillsong UNITED", "With everything": "With Everything Hillsong UNITED", "Worthy of it all": "Worthy of It All David Brymer", "Worthy": "Worthy Elevation Worship", "Yeshua": "Yeshua Jesus Image", "Your name high": {"q": "Your Name High Hillsong UNITED Live in Miami", "al": "Miami", "ar": "Hillsong UNITED"}, "Megdicsőült Úr": {"q": "Megdicsőült Úr Ararat Worship Collective Szent", "al": "Szent", "ar": "Ararat Worship Collective"}, "Minden javamra lesz": {"q": "Minden javamra lesz Agapé Worship", "al": "Jöjj közel", "ar": "Agapé Worship", "live": 1}};
+const COVERQ={"Agnus Dei": "Agnus Dei Michael W. Smith", "Anthem planetshakers": "Anthem Planetshakers Limitless", "Arms open wide": "Arms Open Wide Hillsong UNITED", "At the cross (Keresztednél)": "At the Cross Hillsong Worship", "Awesome God": {"q": "Awesome God Hillsong UNITED Look to You", "al": "Look to You", "ar": "Hillsong UNITED"}, "Beautiful exchange": "Beautiful Exchange Hillsong Worship", "Echoes": {"q": "Echoes Till We See the Other Side Hillsong UNITED People", "al": "People", "ar": "Hillsong UNITED"}, "Fathers house": {"q": "The Father's House Cory Asbury To Love a Fool", "al": "To Love a Fool", "ar": "Cory Asbury"}, "For who you are": {"q": "For Who You Are Hillsong Mighty to Save", "al": "Mighty to Save", "ar": "Hillsong Worship"}, "Forever": "Forever Kari Jobe", "From the inside out": "From the Inside Out Hillsong UNITED", "Glorious Ruins": "Glorious Ruins Hillsong", "Go": "Go Hillsong", "Good Grace": "Good Grace Hillsong UNITED", "Goodness of God": "Goodness of God Bethel Music", "Heart of worship": {"q": "Heart of Worship Matt Redman Sing Like Never Before", "al": "Sing Like Never Before", "ar": "Matt Redman"}, "Here again": "Here Again Elevation Worship", "Here i am to worship": {"q": "Here I Am to Worship Hillsong Ultimate Worship", "al": "Ultimate Worship", "ar": "Hillsong Worship"}, "Holy forever": "Holy Forever Chris Tomlin", "Hosanna": "Hosanna Hillsong UNITED", "Hova mennék": "Hova mennék Ararat Worship", "How great is our God": {"q": "How Great Is Our God Chris Tomlin Essential Collection", "al": "Essential Collection", "ar": "Chris Tomlin"}, "I thank God": "I Thank God Maverick City Music", "Irgalma éltet (Mercy)": "Mercy Elevation Worship", "It is well": {"q": "It Is Well Bethel You Make Me Brave", "al": "You Make Me Brave", "ar": "Bethel Music"}, "King of my heart": "King of My Heart Bethel Music", "Légy tűz / What a beautiful name": "What a Beautiful Name Hillsong Worship", "Like an avalanche": "Like an Avalanche Hillsong UNITED", "Like incense": "Like Incense Sometimes by Step Hillsong", "Lord send revival": {"q": "Lord Send Revival Hillsong Young Free All Of My Best Friends", "al": "All Of My Best Friends", "ar": "Hillsong Young & Free"}, "Magnificent": "Magnificent Hillsong", "Mily nagy Istenünk": {"q": "How Great Is Our God Chris Tomlin Essential Collection", "al": "Essential Collection", "ar": "Chris Tomlin"}, "More love more power": "More Love More Power Michael W. Smith", "More than life": "More Than Life Hillsong UNITED", "No longer slaves": {"q": "No Longer Slaves Bethel We Will Not Be Shaken", "al": "We Will Not Be Shaken", "ar": "Bethel Music"}, "O praise the name": {"q": "O Praise the Name Anastasis Hillsong Worship Open Heaven River Wild", "al": "Open Heaven", "ar": "Hillsong Worship"}, "One way": {"q": "One Way Hillsong UNITED I Heart Revolution", "al": "Heart Revolution", "ar": "Hillsong UNITED"}, "Open heaven": "Open Heaven River Wild Hillsong", "Promises (Ígéretek)": {"q": "Ígéretek Agapé Worship Live Session", "al": "Live Session", "ar": "Agapé Worship"}, "Real love": "Real Love Hillsong Young Free", "Reckless love": {"q": "Reckless Love Bethel Music Peace", "al": "Peace", "ar": "Bethel Music"}, "Relentless remix": "Relentless Hillsong UNITED Madison Square Garden", "Revelation song": {"q": "Revelation Song Jesus Culture Consumed", "al": "Consumed", "ar": "Jesus Culture"}, "Shout to the Lord": "Shout to the Lord Hillsong", "Still": {"q": "Still Commons Worship Live in Manila", "al": "Live in Manila", "ar": "Commons Worship"}, "The stand / B. E.": "The Stand Hillsong UNITED", "This i believe": "This I Believe The Creed Hillsong Worship", "This is living": "This Is Living Hillsong Young Free", "This is our God": "This Is Our God Hillsong", "Through it all": "Through It All Hillsong", "Touch of heaven": "Touch of Heaven Hillsong Worship", "Trust in God": "Trust in God Elevation Worship", "Waiting here for You": {"q": "Waiting Here for You Hillsong Worship Team Night", "al": "Team Night", "ar": "Hillsong Worship"}, "We fall down": "We Fall Down Chris Tomlin", "Who you say i am": {"q": "Who You Say I Am Hillsong Worship There Is More", "al": "There Is More", "ar": "Hillsong Worship"}, "Whole heart": "Whole Heart Hold Me Now Hillsong UNITED", "With everything": "With Everything Hillsong UNITED", "Worthy of it all": {"q": "Worthy of It All Christ For The Nations Taste of Heaven", "al": "Taste of Heaven", "ar": "Christ For The Nations Worship"}, "Worthy": "Worthy Elevation Worship", "Yeshua": "Yeshua Jesus Image", "Your name high": {"q": "Your Name High Hillsong UNITED Live in Miami", "al": "Miami", "ar": "Hillsong UNITED"}, "Megdicsőült Úr": {"q": "Megdicsőült Úr Ararat Worship Collective Szent", "al": "Szent", "ar": "Ararat Worship Collective"}, "Minden javamra lesz": {"q": "Minden javamra lesz Agapé Worship", "al": "Jöjj közel", "ar": "Agapé Worship", "live": 1}};
 const coverQ=t=>{const n=norm(t);for(const k in COVERQ) if(norm(k)===n){const v=COVERQ[k];return typeof v==="string"?{q:v}:{...v,pin:1}}return null};
 /* a song needs a lookup when it never had one, or when its pinned recording changed since (songs looked up before pins existed have no record of their search) */
-const needsCover=s=>{const c=coverQ(s.title);if(!c) return false;if(!s.coverChecked) return true;return s.coverQ?s.coverQ!==c.q:!!c.pin};
+const needsCover=s=>{if(s.coverQ==="manual") return false;const c=coverQ(s.title);if(!c) return false;if(!s.coverChecked) return true;return s.coverQ?s.coverQ!==c.q:!!c.pin};
 const coverEl=(s,cls)=>'<span class="cov'+(cls?" "+cls:"")+'"'+(s.cover?' style="background-image:url(\''+esc(s.cover)+'\')"':'')+'>'+(s.cover?'':esc(((s.title||"?").trim()[0]||"?").toUpperCase()))+'</span>';
-function itunes(term){return new Promise((ok,no)=>{const cb="it"+Math.random().toString(36).slice(2),sc=document.createElement("script");
+function itunes(term,entity){return new Promise((ok,no)=>{const cb="it"+Math.random().toString(36).slice(2),sc=document.createElement("script");
   const t=setTimeout(()=>{end();no(new Error("timeout"))},12000);function end(){clearTimeout(t);delete window[cb];sc.remove()}
   window[cb]=d=>{end();ok(d.results||[])};sc.onerror=()=>{end();no(new Error("load"))};
-  sc.src="https://itunes.apple.com/search?entity=song&limit=25&country=us&term="+encodeURIComponent(term)+"&callback="+cb;document.head.appendChild(sc)})}
+  sc.src="https://itunes.apple.com/search?entity="+(entity||"song")+"&limit=25&country=us&term="+encodeURIComponent(term)+"&callback="+cb;document.head.appendChild(sc)})}
 let coverRun=false;
 async function fillCovers(){
   if(coverRun||!auth||!navigator.onLine) return; coverRun=true;
@@ -526,7 +535,9 @@ async function fillCovers(){
       if(!res) continue;
       const q=norm(s.title.replace(/\(.*?\)/g,"").split("/").pop()).split(/\s+/).slice(0,2).join(" ");
       const al=cq.al?norm(cq.al):"", tq=x=>norm(x.trackName).startsWith(q)||norm(x.trackName).startsWith(norm(cq.q).split(" ").slice(0,2).join(" "));
-      const hit=(al&&res.find(x=>tq(x)&&norm(x.collectionName).includes(al)))||(al&&res.find(x=>norm(x.collectionName).includes(al)))||(cq.live&&res.find(x=>tq(x)&&/live/i.test(x.trackName+" "+x.collectionName)))||res.find(tq)||res[0];
+      let hit0=al&&(res.find(x=>tq(x)&&norm(x.collectionName).includes(al))||res.find(x=>norm(x.collectionName).includes(al)));
+      if(al&&!hit0){try{const ab=await itunes((cq.ar||"")+" "+cq.al,"album");hit0=ab.find(x=>norm(x.collectionName).includes(al))}catch(e){}}
+      const hit=hit0||(al&&res.find(x=>tq(x)&&norm(x.collectionName).includes(al)))||(al&&res.find(x=>norm(x.collectionName).includes(al)))||(cq.live&&res.find(x=>tq(x)&&/live/i.test(x.trackName+" "+x.collectionName)))||res.find(tq)||res[0];
       const cur=songs.get(s.id)||s, upd={...cur,coverChecked:true,coverQ:cq.q,updatedAt:Date.now()};
       if(hit){upd.cover=(hit.artworkUrl100||"").replace(/\/\d+x\d+bb\./,"/300x300bb."); if(cq.ar) upd.artist=cq.ar; else if(!cur.artist) upd.artist=hit.artistName}
       put("songs",s.id,upd); softRender(); n++;
@@ -540,7 +551,7 @@ const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="kchip kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const chip=s=>'<span class="kchip'+(s.key?"":" empty")+'">'+esc(s.key||"–")+'</span>';
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
-const go=(view,extra)=>{noAct();Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
+const go=(view,extra)=>{noAct();Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,coverPick:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
 /* ---------- views ---------- */
 function tabs(){
@@ -601,14 +612,14 @@ function vEdit(){
   (d.id?'':'<div class="imp"><label class="impbtn" for="f-img">'+ico.image+' Képernyőképből</label><input id="f-img" type="file" accept="image/*" hidden><button class="impbtn" data-act="paste">'+ico.paste+' Beillesztés</button></div>'+
    (ui.ocr?'<div class="ocrmsg'+(ui.ocr.err?" bad":"")+'">'+esc(ui.ocr.msg)+'</div>':''))+
   '<p class="eyebrow">'+(d.id?'Dal szerkesztése':'Új dal')+'</p><input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
-  '<div class="card" style="margin-top:12px"><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
+  '<div class="card" style="margin-top:12px"><button class="field covfield" data-act="coverpick">'+coverEl({title:d.title,cover:d.cover})+'<span class="cvl">Borító</span><span class="cvv">'+(d.cover?"Módosítás":"Keresés")+'</span>'+ico.chev+'</button><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
   '<div class="field"><label for="f-key">Hangnem</label><select id="f-key"><option value="">nincs</option>'+(d.key&&!KEYS.includes(d.key)?[d.key]:[]).concat(KEYS).map(k=>'<option'+(k===d.key?" selected":"")+'>'+esc(k)+'</option>').join("")+'</select></div>'+
   '<div class="field"><label for="f-bpm">Tempó</label><input id="f-bpm" inputmode="numeric" value="'+esc(d.bpm)+'" placeholder="BPM"></div>'+
   '<div class="field"><label for="f-notes">Megjegyzés</label><input id="f-notes" value="'+esc(d.notes)+'" placeholder="effekt, capo, emlékeztető" autocomplete="off"></div></div>'+
   '<div class="label">Kotta</div><textarea class="chartin" id="f-body" placeholder="Verse: 1 4 1 6 4" spellcheck="false" autocapitalize="off" autocorrect="off">'+esc(d.body)+'</textarea>'+
   '<div class="hint">Szakasz neve, kettőspont, utána a számok: <code>Chorus: 4 1 5 6</code>. Minden új sor új ütemsor. A hangnemen kívüli akkordokat nyugodtan írd betűvel (<code>D</code>, <code>C#</code>), azok úgy maradnak. Üres hely egy sorban: <code>.</code></div>'+
   '<div class="label">Előnézet</div><div class="reading" id="preview">'+chartHTML(d.body,d.key,false)+'</div>'+
-  (d.id&&songs.has(d.id)?'<div class="card">'+(ui.confirmDel?'<div class="confirm"><span>Biztosan törlöd?</span><button class="yes" data-act="dodelsong">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Dal törlése</button>')+'</div>':"")+
+  (ui.coverPick?vCoverPick():'')+(d.id&&songs.has(d.id)?'<div class="card">'+(ui.confirmDel?'<div class="confirm"><span>Biztosan törlöd?</span><button class="yes" data-act="dodelsong">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Dal törlése</button>')+'</div>':"")+
   '</div>';
 }
 function vSet(){
@@ -634,6 +645,28 @@ function vKeySheet(s){
   return '<div class="sheet-bg" data-act="closekey"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(g.title)+'</span><button class="link" data-act="closekey">Kész</button></div>'+
   (g.key?'<p class="sub" style="margin-bottom:12px">eredeti: '+esc(g.key)+'</p>':'<div style="height:8px"></div>')+
   '<div class="kgrid">'+KEY12.map(k=>'<button class="kopt'+(k===cur?" on":"")+(k===g.key?" orig":"")+'" data-act="pickkey" data-v="'+k+'">'+k+'</button>').join("")+'</div></div>';
+}
+/* cover picker: search the Apple catalog, one tile per album, tap to use it */
+function vCoverPick(){
+  return '<div class="sheet-bg" data-act="goback"></div><div class="sheet" role="dialog" aria-label="Borító"><div class="shead"><div class="top"><span style="font-weight:700">Borító</span><button class="link" data-act="goback">Kész</button></div>'+
+  '<label class="search">'+ico.search+'<input id="cq" type="search" placeholder="Dal, előadó, album" value="'+esc(ui.cq||"")+'" autocomplete="off"></label></div><div class="inner"><div id="coverList">'+coverList()+'</div></div></div>';
+}
+function coverList(){
+  const r=ui.cres;
+  if(r==="busy") return '<p class="sub" style="text-align:center;margin-top:24px">Keresés…</p>';
+  if(r==="err") return '<p class="sub" style="text-align:center;margin-top:24px">Nem sikerült a keresés. Van internet?</p>';
+  const none='<button class="row cnone" data-act="coverset" data-i="-1"><span class="cov sm">–</span><div class="main"><div class="t1">Nincs borító</div></div></button>';
+  if(!r||!r.length) return '<div class="glist">'+none+'</div>'+(r?'<p class="sub" style="text-align:center;margin-top:18px">Nincs találat.</p>':'');
+  return '<div class="cgrid">'+r.map((x,i)=>'<button class="citem" data-act="coverset" data-i="'+i+'"><span class="cov" style="background-image:url(\''+esc(x.img)+'\')"></span><span class="t1">'+esc(x.al)+'</span><span class="t2">'+esc(x.a)+'</span></button>').join("")+'</div><div class="glist" style="margin-top:16px">'+none+'</div>';
+}
+let cqT=0;
+function coverSearch(){
+  clearTimeout(cqT); const q=(ui.cq||"").trim(); if(!q){ui.cres=null;const l=$("#coverList");if(l)l.innerHTML=coverList();return}
+  cqT=setTimeout(async()=>{ui.cres="busy";const l=$("#coverList");if(l)l.innerHTML=coverList();
+    try{const res=await itunes(q),seen=new Set(),out=[];
+      for(const x of res){const k=x.collectionId||x.collectionName;if(seen.has(k))continue;seen.add(k);out.push({al:x.collectionName||x.trackName,a:x.artistName,img:(x.artworkUrl100||"").replace(/\/\d+x\d+bb\./,"/300x300bb.")})}
+      if((ui.cq||"").trim()===q){ui.cres=out;const m=$("#coverList");if(m)m.innerHTML=coverList()}}
+    catch(e){ui.cres="err";const m=$("#coverList");if(m)m.innerHTML=coverList()}},350);
 }
 function vPicker(s){
   return '<div class="sheet-bg" data-act="closepicker"></div><div class="sheet" role="dialog" aria-label="Dal hozzáadása"><div class="shead"><div class="top"><span style="font-weight:700">Dal hozzáadása</span><button class="link" data-act="closepicker">Kész</button></div>'+
@@ -768,7 +801,7 @@ function render(){
   const v=ui.view;
   measureSab();
   $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
-  document.body.style.overflow=(v==="stage"||ui.picker||ui.keyFor||ui.stageKey||ui.stageLib)?"hidden":"";
+  document.body.style.overflow=(v==="stage"||ui.picker||ui.coverPick||ui.keyFor||ui.stageKey||ui.stageLib)?"hidden":"";
   /* iOS paints the strip under the home bar with the page background, not the stage's; match it so a dark stage stays black on a light-mode phone */
   {const sb=v==="stage"?(prefs.light?"#fff":"#000"):""; document.documentElement.style.background=sb; document.body.style.background=sb}
   if(v==="stage"){fit();requestAnimationFrame(fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);watchArea()}
@@ -797,10 +830,15 @@ document.addEventListener("click",e=>{
       break;
     case "opensong": ui.homeY=window.scrollY; push(); go("song",{id}); break;
     case "openset": ui.homeY=window.scrollY; push(); go("set",{id}); break;
-    case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||""}})} break;
+    case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
     case "canceledit": history.back(); break;
+    case "coverpick": readDraft(); push(); ui.coverPick=true; ui.cq=[ui.draft.title,ui.draft.artist].filter(Boolean).join(" "); ui.cres=null; render(); coverSearch(); break;
+    case "coverset": {const i=+b.dataset.i, x=i>=0&&Array.isArray(ui.cres)?ui.cres[i]:null; readDraft();
+      Object.assign(ui.draft,{cover:x?x.img:"",coverManual:true}); if(x) ui.draft.artist=x.a; history.back()} break;
     case "paste": (async()=>{try{const t=await navigator.clipboard.readText();if(!t.trim())throw 0;applyImport(t,"Beillesztve. Nézd át, és ha jó, nyomd meg a Mentést.")}catch(_){ui.ocr={msg:"Nem sikerült beilleszteni. Másold ki a jegyzet szövegét, és próbáld újra.",err:1};render()}})(); break;
-    case "saveedit": {ui.ocr=null;readDraft();const d=ui.draft,isNew=!d.id,sid=d.id||newId("s");put("songs",sid,{title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()});
+    case "saveedit": {ui.ocr=null;readDraft();const d=ui.draft,isNew=!d.id,sid=d.id||newId("s");const old=(d.id&&songs.get(d.id))||{};const rec={...old,title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()};delete rec.id;
+      if(d.coverManual){rec.cover=d.cover||"";rec.coverChecked=true;rec.coverQ="manual"}
+      put("songs",sid,rec);
       if(isNew){go("song",{id:sid})} else history.back()} break;
     case "askdel": ui.confirmDel=true; render(); break;
     case "nodel": ui.confirmDel=false; render(); break;
@@ -850,6 +888,7 @@ document.addEventListener("input",e=>{
   if(t.id==="q"){ui.q=t.value;$("#songList").innerHTML=songsList()}
   else if(t.id==="pq"){ui.pq=t.value;$("#pickList").innerHTML=pickList(setlists.get(ui.id))}
   else if(t.id==="lq"){ui.lq=t.value;$("#libList").innerHTML=libList()}
+  else if(t.id==="cq"){ui.cq=t.value;coverSearch()}
   else if(ui.view==="edit"&&(t.id==="f-body"||t.id==="f-key")){readDraft();$("#preview").innerHTML=chartHTML(ui.draft.body,ui.draft.key,false)}
 });
 document.addEventListener("change",e=>{
@@ -879,12 +918,13 @@ function backAction(){
   if(ui.stageKey){ui.stageKey=false;render();return}
   if(ui.keyFor){ui.keyFor=null;render();return}
   if(ui.picker){ui.picker=false;render();return}
+  if(ui.coverPick){ui.coverPick=false;render();return}
   if(ui.view==="stage"){const f=ui.stage?ui.stage.from:{view:"home"};releaseScreen();ui.stage=null;go(f.view,{id:f.id});return}
   if(ui.view==="edit"){ui.ocr=null;const id=ui.draft&&ui.draft.id;if(id&&songs.has(id))go("song",{id});else goHome();return}
   if(ui.view!=="home") goHome();
 }
 window.addEventListener("popstate",()=>{if(ignorePop){ignorePop=false;return}backAction()});
-const canGoBack=()=>ui.view!=="home"||ui.picker||ui.keyFor||ui.stageKey||ui.stageLib;
+const canGoBack=()=>ui.view!=="home"||ui.picker||ui.coverPick||ui.keyFor||ui.stageKey||ui.stageLib;
 /* fallback edge swipe, for when the system gesture is not available */
 let edge=null;
 document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=(e.touches.length===1&&t.clientX<24&&canGoBack())?{x:t.clientX,y:t.clientY,dx:0,on:false}:null},{passive:true});
