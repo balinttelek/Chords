@@ -233,8 +233,8 @@ html{background:var(--bg)}
 .kchip.over{box-shadow:none}
 .kchip.empty{color:var(--muted);font-weight:600}
 /* every list is one grouped card like the setlist */
-.glist{display:grid;gap:0;background:var(--surface);border-radius:16px;overflow:hidden}
-.glist>.row{border-radius:0;background:none;min-height:64px;padding:8px 14px 8px 16px}
+.glist{display:grid;grid-template-columns:minmax(0,1fr);gap:0;background:var(--surface);border-radius:16px;overflow:hidden}
+.glist>.row{min-width:0;border-radius:0;background:none;min-height:64px;padding:8px 14px 8px 16px}
 .glist>.row+.row{box-shadow:inset 0 1px 0 var(--line)}
 .glist>.row:active{background:var(--sunk)}
 .noact .glist>.row:active{background:none}.noact .row:active{background:var(--surface)}.noact .sfront:active{background:var(--surface)}
