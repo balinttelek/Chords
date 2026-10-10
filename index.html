@@ -519,7 +519,12 @@ const coverQ=t=>{const n=norm(t);for(const k in COVERQ) if(norm(k)===n){const v=
 /* a song needs a lookup when it never had one, or when its pinned recording changed since (songs looked up before pins existed have no record of their search) */
 const needsCover=s=>{if(s.coverQ==="manual") return false;const c=coverQ(s.title);if(!c) return false;if(!s.coverChecked) return true;return s.coverQ?s.coverQ!==c.q:!!c.pin};
 const coverEl=(s,cls)=>'<span class="cov'+(cls?" "+cls:"")+'"'+(s.cover?' style="background-image:url(\''+esc(s.cover)+'\')"':'')+'>'+(s.cover?'':esc(((s.title||"?").trim()[0]||"?").toUpperCase()))+'</span>';
-function itunes(term,entity){return new Promise((ok,no)=>{const cb="it"+Math.random().toString(36).slice(2),sc=document.createElement("script");
+let itLast=0, itBusy=Promise.resolve();
+function itunes(term,entity,prio){
+  const run=async()=>{const gap=(prio?900:2500)-(Date.now()-itLast); if(gap>0) await new Promise(r=>setTimeout(r,gap)); itLast=Date.now(); return itunesRaw(term,entity)};
+  const p=itBusy.then(run,run); itBusy=p.catch(()=>{}); return p;
+}
+function itunesRaw(term,entity){return new Promise((ok,no)=>{const cb="it"+Math.random().toString(36).slice(2),sc=document.createElement("script");
   const t=setTimeout(()=>{end();no(new Error("timeout"))},12000);function end(){clearTimeout(t);delete window[cb];sc.remove()}
   window[cb]=d=>{end();ok(d.results||[])};sc.onerror=()=>{end();no(new Error("load"))};
   sc.src="https://itunes.apple.com/search?entity="+(entity||"song")+"&limit=25&country=us&term="+encodeURIComponent(term)+"&callback="+cb;document.head.appendChild(sc)})}
@@ -529,6 +534,7 @@ async function fillCovers(){
   try{
     const todo=[...songs.values()].filter(needsCover).sort((a,b)=>(coverQ(b.title).pin||0)-(coverQ(a.title).pin||0)); let n=0;
     for(const s0 of todo){
+      while(ui.coverPick) await new Promise(r=>setTimeout(r,1000));
       const s=songs.get(s0.id), cq=s&&coverQ(s.title); if(!s||!cq||!needsCover(s)) continue;
       let res=null;
       for(let k=0;k<3&&!res;k++){try{res=await itunes(cq.q)}catch(e){await new Promise(r=>setTimeout(r,4000*(k+1)))}}
@@ -541,7 +547,6 @@ async function fillCovers(){
       const cur=songs.get(s.id)||s, upd={...cur,coverChecked:true,coverQ:cq.q,updatedAt:Date.now()};
       if(hit){upd.cover=(hit.artworkUrl100||"").replace(/\/\d+x\d+bb\./,"/300x300bb."); if(cq.ar) upd.artist=cq.ar; else if(!cur.artist) upd.artist=hit.artistName}
       put("songs",s.id,upd); softRender(); n++;
-      await new Promise(r=>setTimeout(r,450));
     }
     if(n) toast(n+" borító frissítve");
   }finally{coverRun=false}
@@ -649,12 +654,12 @@ function vKeySheet(s){
 /* cover picker: search the Apple catalog, one tile per album, tap to use it */
 function vCoverPick(){
   return '<div class="sheet-bg" data-act="goback"></div><div class="sheet" role="dialog" aria-label="Borító"><div class="shead"><div class="top"><span style="font-weight:700">Borító</span><button class="link" data-act="goback">Kész</button></div>'+
-  '<label class="search">'+ico.search+'<input id="cq" type="search" placeholder="Dal, előadó, album" value="'+esc(ui.cq||"")+'" autocomplete="off"></label></div><div class="inner"><div id="coverList">'+coverList()+'</div></div></div>';
+  '<label class="search">'+ico.search+'<input id="cq" type="search" name="coversearch" placeholder="Dal, előadó, album" value="'+esc(ui.cq||"")+'" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"></label></div><div class="inner"><div id="coverList">'+coverList()+'</div></div></div>';
 }
 function coverList(){
   const r=ui.cres;
   if(r==="busy") return '<p class="sub" style="text-align:center;margin-top:24px">Keresés…</p>';
-  if(r==="err") return '<p class="sub" style="text-align:center;margin-top:24px">Nem sikerült a keresés. Van internet?</p>';
+  if(r==="err") return '<p class="sub" style="text-align:center;margin-top:24px">Az Apple most nem válaszolt. Várj pár másodpercet, és módosíts a keresésen.</p>';
   const none='<button class="row cnone" data-act="coverset" data-i="-1"><span class="cov sm">–</span><div class="main"><div class="t1">Nincs borító</div></div></button>';
   if(!r||!r.length) return '<div class="glist">'+none+'</div>'+(r?'<p class="sub" style="text-align:center;margin-top:18px">Nincs találat.</p>':'');
   return '<div class="cgrid">'+r.map((x,i)=>'<button class="citem" data-act="coverset" data-i="'+i+'"><span class="cov" style="background-image:url(\''+esc(x.img)+'\')"></span><span class="t1">'+esc(x.al)+'</span><span class="t2">'+esc(x.a)+'</span></button>').join("")+'</div><div class="glist" style="margin-top:16px">'+none+'</div>';
@@ -663,10 +668,13 @@ let cqT=0;
 function coverSearch(){
   clearTimeout(cqT); const q=(ui.cq||"").trim(); if(!q){ui.cres=null;const l=$("#coverList");if(l)l.innerHTML=coverList();return}
   cqT=setTimeout(async()=>{ui.cres="busy";const l=$("#coverList");if(l)l.innerHTML=coverList();
-    try{const res=await itunes(q),seen=new Set(),out=[];
+    let res=null;
+    for(let k=0;k<3&&!res;k++){try{res=await itunes(q,"song",1)}catch(e){if((ui.cq||"").trim()!==q) return; await new Promise(r=>setTimeout(r,2500*(k+1)))}}
+    if((ui.cq||"").trim()!==q) return;
+    try{if(!res) throw 0; const seen=new Set(),out=[];
       for(const x of res){const k=x.collectionId||x.collectionName;if(seen.has(k))continue;seen.add(k);out.push({al:x.collectionName||x.trackName,a:x.artistName,img:(x.artworkUrl100||"").replace(/\/\d+x\d+bb\./,"/300x300bb.")})}
       if((ui.cq||"").trim()===q){ui.cres=out;const m=$("#coverList");if(m)m.innerHTML=coverList()}}
-    catch(e){ui.cres="err";const m=$("#coverList");if(m)m.innerHTML=coverList()}},350);
+    catch(e){ui.cres="err";const m=$("#coverList");if(m)m.innerHTML=coverList()}},600);
 }
 function vPicker(s){
   return '<div class="sheet-bg" data-act="closepicker"></div><div class="sheet" role="dialog" aria-label="Dal hozzáadása"><div class="shead"><div class="top"><span style="font-weight:700">Dal hozzáadása</span><button class="link" data-act="closepicker">Kész</button></div>'+
