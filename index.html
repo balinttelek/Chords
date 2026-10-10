@@ -88,6 +88,9 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .eyebrow{margin:12px 0 6px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eyebrow b{color:var(--accent);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.4px;text-transform:none}
 .h1.song{margin:0 0 20px}
+/* the song search stays pinned under the status bar while the list scrolls */
+.stick{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--bg);margin:0 -16px;padding:8px 16px 4px}
+.stick .search{margin-bottom:8px}
 .votd{position:relative;overflow:hidden;margin:0 0 18px;padding:20px 20px 14px;border-radius:20px;color:#fff;isolation:isolate;
   background:radial-gradient(120% 70% at 85% 0%,color-mix(in srgb,var(--vc) 55%,transparent),transparent 60%),radial-gradient(90% 60% at 0% 100%,color-mix(in srgb,var(--va) 90%,#000 10%),transparent 70%),linear-gradient(170deg,var(--va),var(--vb));box-shadow:0 10px 28px rgba(0,0,0,.18)}
 .votd::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.35));pointer-events:none}
@@ -611,7 +614,7 @@ function verseCard(){const [ref,txt]=verseToday(), d=new Date(), k=(d.getFullYea
 function vHome(){
   if(ui.tab==="sets") return '<div class="wrap tall"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+verseCard()+setsList()+(sortedSets().length?'<button class="addcenter" data-act="new" aria-label="Új setlist">'+ico.plus+'</button>':'')+'</div>'+tabs();
   return '<div class="wrap tall"><div class="top"></div><h1 class="h1">Dalok</h1><p class="sub">'+songs.size+' dal a daltárban</p>'+
-  '<label class="search">'+ico.search+'<input id="q" type="search" placeholder="Cím vagy előadó" value="'+esc(ui.q)+'" autocomplete="off"></label><div id="songList">'+songsList()+'</div></div>'+tabs();
+  '<div class="stick"><label class="search">'+ico.search+'<input id="q" type="search" placeholder="Cím vagy előadó" value="'+esc(ui.q)+'" autocomplete="off"></label></div><div id="songList">'+songsList()+'</div></div>'+tabs();
 }
 function acct(){
   if(!auth) return "";
