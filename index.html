@@ -88,15 +88,16 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .eyebrow{margin:12px 0 6px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eyebrow b{color:var(--accent);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.4px;text-transform:none}
 .h1.song{margin:0 0 20px}
-.votd{position:relative;overflow:hidden;margin:0 0 18px;padding:16px 16px 18px 18px;border-radius:20px;color:#fff;isolation:isolate;cursor:pointer;
-  background:radial-gradient(120% 90% at 90% 0%,color-mix(in srgb,var(--vc) 50%,transparent),transparent 60%),linear-gradient(160deg,var(--va),var(--vb))}
-.votd figcaption{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;font-size:13px}
-.votd figcaption>span{display:flex;flex-direction:column;gap:2px;opacity:.85}
-.votd figcaption b{font-family:var(--display);font-size:17px;font-weight:700;opacity:1}
-.votd blockquote{margin:12px 0 0;font-family:var(--serif);font-size:21px;line-height:1.32;text-wrap:pretty;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden}
-.votd.open blockquote{-webkit-line-clamp:unset;display:block}
-.vshare{width:32px;height:32px;margin:-4px -6px -4px 0;display:grid;place-items:center;color:#fff;border-radius:10px;flex:none}
-.vshare svg{width:18px;height:18px}
+.votd{position:relative;overflow:hidden;margin:0 0 18px;padding:20px 20px 14px;border-radius:20px;color:#fff;isolation:isolate;
+  background:radial-gradient(120% 70% at 85% 0%,color-mix(in srgb,var(--vc) 55%,transparent),transparent 60%),radial-gradient(90% 60% at 0% 100%,color-mix(in srgb,var(--va) 90%,#000 10%),transparent 70%),linear-gradient(170deg,var(--va),var(--vb));box-shadow:0 10px 28px rgba(0,0,0,.18)}
+.votd::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.35));pointer-events:none}
+.votd figcaption{display:flex;flex-direction:column;gap:2px}
+.votd figcaption span{font-size:13px;font-weight:600;opacity:.8}
+.votd figcaption b{font-family:var(--display);font-size:18px;font-weight:700}
+.votd blockquote{margin:18px 0 16px;font-family:var(--serif);font-size:24px;line-height:1.32;font-weight:400;letter-spacing:-.1px;text-wrap:pretty}
+.votd blockquote.l{font-size:21px}.votd blockquote.xl{font-size:19px;line-height:1.36}
+.votd .vfoot{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;opacity:.75}
+.vshare{width:40px;height:40px;margin-right:-8px;display:grid;place-items:center;color:#fff;border-radius:12px}
 .vshare:active{background:rgba(255,255,255,.15)}
 /* iOS places the fixed tab bar differently on a page that doesn't scroll; keep both tabs scrollable so the bar sits the same */
 .wrap.tall{min-height:calc(100vh + 1px);box-sizing:border-box}
@@ -595,9 +596,8 @@ function verseToday(){
 /* a quiet "sky" per day, like a photo card: layered gradients, no images to download */
 const SKIES=[["#1d4e5c","#0d2129","#7fb7c4"],["#3a3450","#16141f","#b3a2c9"],["#5a3f2c","#1f1511","#e0b48a"],["#2f4a3a","#111c16","#9cc2a6"],["#2a3a55","#0f1522","#94acd6"],["#4d3a3a","#1b1313","#d6a3a3"]];
 function verseCard(){const [ref,txt]=verseToday(), d=new Date(), k=(d.getFullYear()*372+d.getMonth()*31+d.getDate())%SKIES.length, [a,b,c]=SKIES[k];
-  /* five lines, tap to read the rest */
-  return '<figure class="votd'+(ui.verseOpen?' open':'')+'" data-act="verseopen" style="--va:'+a+';--vb:'+b+';--vc:'+c+'"><figcaption><span>Mai ige<b>'+esc(ref)+'</b></span><button class="vshare" data-act="shareverse" aria-label="Megosztás">'+ico.share+'</button></figcaption>'+
-  '<blockquote>'+esc(txt)+'</blockquote></figure>'}
+  return '<figure class="votd" style="--va:'+a+';--vb:'+b+';--vc:'+c+'"><figcaption><span>Mai ige</span><b>'+esc(ref)+'</b></figcaption>'+
+  '<blockquote'+(txt.length>230?' class="xl"':txt.length>160?' class="l"':'')+'>'+esc(txt)+'</blockquote><div class="vfoot"><span>Károli, 1908</span><button class="vshare" data-act="shareverse" aria-label="Megosztás">'+ico.share+'</button></div></figure>'}
 function vHome(){
   if(ui.tab==="sets") return '<div class="wrap tall"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+verseCard()+setsList()+(sortedSets().length?'<button class="addcenter" data-act="new" aria-label="Új setlist">'+ico.plus+'</button>':'')+'</div>'+tabs();
   return '<div class="wrap tall"><div class="top"></div><h1 class="h1">Dalok</h1><p class="sub">'+songs.size+' dal a daltárban</p>'+
@@ -878,7 +878,6 @@ document.addEventListener("click",e=>{
     case "openset": ui.homeY=window.scrollY; push(); go("set",{id}); break;
     case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
     case "canceledit": history.back(); break;
-    case "verseopen": ui.verseOpen=!ui.verseOpen; {const v=b.closest(".votd"); if(v) v.classList.toggle("open",ui.verseOpen)} break;
     case "shareverse": {const [ref,txt]=verseToday(), t=txt+"\n("+ref+", Károli)";
       if(navigator.share) navigator.share({text:t}).catch(()=>{}); else if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast("Ige kimásolva"),()=>{})} break;
     case "coverpick": readDraft(); push(); ui.coverPick=true; ui.cq=[ui.draft.title,ui.draft.artist].filter(Boolean).join(" "); ui.cres=null; render(); coverSearch(); break;
