@@ -1,5 +1,5 @@
 // Chords service worker: the app works offline; song data syncs through Supabase when online.
-const VERSION = "szk-v55";
+const VERSION = "szk-v56";
 const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./songs-seed.json",
   "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png"];
 
