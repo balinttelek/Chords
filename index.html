@@ -762,7 +762,7 @@ function step(d){
 }
 let cd=null;
 document.addEventListener("pointerdown",e=>{
-  if(ui.view!=="stage"||flying||ui.stageKey||ui.stageLib||Date.now()-stageCalm<600||e.clientX<24||!e.target.closest("#stArea")) return;
+  if(ui.view!=="stage"||flying||ui.stageKey||ui.stageLib||Date.now()-stageCalm<600||!e.target.closest("#stArea")) return;
   cd={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId,on:false,dx:0};
 });
 document.addEventListener("pointermove",e=>{
@@ -875,7 +875,7 @@ document.addEventListener("click",e=>{
       {const q=$("#pq"); if(q&&q.value){q.focus();q.setSelectionRange(0,q.value.length)}}} break;
     case "playfrom": if(set){push();startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{},set.id)} break;
     case "playsong": push(); startStage([ui.id],0); break;
-    case "exitstage": history.back(); break;
+    case "exitstage": stageExit=true; history.back(); break;
     case "stagekey": push(); ui.stageKey=true; render(); break;
     case "stagelib": push(); ui.stageLib=true; ui.lq=""; render(); setTimeout(()=>{const i=$("#lq");if(i)i.focus()},250); break;
     case "libpick": {const st=ui.stage; if(!st)break; let k=st.list.indexOf(id);
@@ -928,13 +928,16 @@ try{history.replaceState({szk:0},"")}catch(_){}
 /* iOS can leave the last touch's press highlight on whatever row lands under the finger after a page change; mute it briefly */
 let noActT=0;function noAct(){document.body.classList.add("noact");clearTimeout(noActT);noActT=setTimeout(()=>document.body.classList.remove("noact"),900)}
 function goHome(){const y=ui.homeY||0;go("home");window.scrollTo(0,y);requestAnimationFrame(()=>window.scrollTo(0,y))}
+/* on stage only the Kész button leaves; iOS's edge back-swipe (easy to hit while swiping between songs) is undone */
+let stageExit=false;
 function backAction(){
   if(ui.stageLib){ui.stageLib=false;render();return}
   if(ui.stageKey){ui.stageKey=false;ui.stagePick=null;stageCalm=Date.now();render();return}
   if(ui.keyFor){ui.keyFor=null;render();return}
   if(ui.picker){ui.picker=false;render();return}
   if(ui.coverPick){ui.coverPick=false;render();return}
-  if(ui.view==="stage"){const f=ui.stage?ui.stage.from:{view:"home"};releaseScreen();ui.stage=null;go(f.view,{id:f.id});return}
+  if(ui.view==="stage"&&!stageExit){push();return}
+  if(ui.view==="stage"){stageExit=false;const f=ui.stage?ui.stage.from:{view:"home"};releaseScreen();ui.stage=null;go(f.view,{id:f.id});return}
   if(ui.view==="edit"){ui.ocr=null;const id=ui.draft&&ui.draft.id;if(id&&songs.has(id))go("song",{id});else goHome();return}
   if(ui.view!=="home") goHome();
 }
@@ -942,7 +945,7 @@ window.addEventListener("popstate",()=>{if(ignorePop){ignorePop=false;return}bac
 const canGoBack=()=>ui.view!=="home"||ui.picker||ui.coverPick||ui.keyFor||ui.stageKey||ui.stageLib;
 /* fallback edge swipe, for when the system gesture is not available */
 let edge=null;
-document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=(e.touches.length===1&&t.clientX<24&&canGoBack())?{x:t.clientX,y:t.clientY,dx:0,on:false}:null},{passive:true});
+document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=(e.touches.length===1&&t.clientX<24&&canGoBack()&&ui.view!=="stage")?{x:t.clientX,y:t.clientY,dx:0,on:false}:null},{passive:true});
 document.addEventListener("touchmove",e=>{
   if(!edge) return; const t=e.touches[0], dx=t.clientX-edge.x, dy=t.clientY-edge.y;
   if(!edge.on){if(dx>12&&dx>Math.abs(dy)*1.5)edge.on=true;else if(Math.abs(dy)>12){edge=null;return}else return}
@@ -979,6 +982,12 @@ function endEdge(commit){
     setTimeout(()=>{a.style.transition="";dropUnder(a)},200)}
 }
 document.addEventListener("touchend",()=>endEdge(true));
+let edgeTap=null;
+document.addEventListener("touchstart",e=>{edgeTap=null;
+  if(ui.view!=="stage"||ui.stageKey||ui.stageLib||e.touches.length!==1) return; const t=e.touches[0];
+  if(t.clientX<22&&e.target.closest("#stArea")){e.preventDefault();edgeTap={x:t.clientX,y:t.clientY}}},{passive:false});
+document.addEventListener("touchend",e=>{const t=edgeTap;edgeTap=null;if(!t||ui.view!=="stage")return;const c=e.changedTouches[0];
+  if(Math.abs(c.clientX-t.x)<10&&Math.abs(c.clientY-t.y)<10&&!cd) step(-1)});
 /* sheets (song picker, key pickers, stage library) can be pulled down to close, like iOS sheets */
 let pull=null;
 document.addEventListener("touchstart",e=>{
