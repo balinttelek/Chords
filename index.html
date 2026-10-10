@@ -296,7 +296,7 @@ html{background:var(--bg)}
 (function(){
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const KEYS=["C","C#","Db","D","Eb","E","F","F#","Gb","G","Ab","A","B","H"];
+const KEYS=["C","C#","Db","D","Eb","E","F","F#","Gb","G","Ab","A","A#","H"];
 const ico={
   cal:'<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="1.5" y="2.5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1.5 6h11M4.5 1v3M9.5 1v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   back:'<svg width="11" height="19" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -325,7 +325,10 @@ let auth=null;try{auth=JSON.parse(localStorage.getItem(AUTH)||"null")}catch(e){}
 const saveStore=()=>{try{localStorage.setItem(STORE,JSON.stringify(store))}catch(e){}};
 const saveAuth=()=>{try{auth?localStorage.setItem(AUTH,JSON.stringify(auth)):localStorage.removeItem(AUTH)}catch(e){}};
 let songs=new Map(), setlists=new Map();
-const live=coll=>new Map(Object.entries(store[coll]).filter(([,r])=>!r.deleted).map(([k,r])=>[k,{...r.data,id:k}]));
+const fixKey=k=>k==="B"||k==="Bb"?"A#":k;
+const fixRec=(coll,d)=>{if(coll==="songs") return d.key==="B"||d.key==="Bb"?{...d,key:"A#"}:d;
+  if(d.keys&&Object.values(d.keys).some(k=>k==="B"||k==="Bb")){const keys={};for(const i in d.keys) keys[i]=fixKey(d.keys[i]);return {...d,keys}} return d};
+const live=coll=>new Map(Object.entries(store[coll]).filter(([,r])=>!r.deleted).map(([k,r])=>[k,{...fixRec(coll,r.data),id:k}]));
 function rebuild(){songs=live("songs");setlists=live("setlists")}
 rebuild();
 const ui={keyFor:null,ocr:null,view:"home",tab:"sets",q:"",id:null,draft:null,editSet:false,picker:false,pq:"",confirmDel:false,stage:null,login:{email:"",err:"",busy:false},confirmOut:false};
@@ -433,7 +436,8 @@ function parse(body){
 }
 /* Hungarian naming: H = B natural, B = B flat */
 const NAT={C:0,D:2,E:4,F:5,G:7,A:9,H:11,B:10};
-const SH=["C","C#","D","D#","E","F","F#","G","G#","A","B","H"], FL=["C","Db","D","Eb","E","F","Gb","G","Ab","A","B","H"];
+/* the note between A and H is always written A#: Hungarian "B" is easy to misread as H */
+const SH=["C","C#","D","D#","E","F","F#","G","G#","A","A#","H"], FL=["C","Db","D","Eb","E","F","Gb","G","Ab","A","A#","H"];
 const DEG=[0,2,4,5,7,9,11];
 function keyPc(k){if(!k)return null;const m=/^([A-H])([#b]?)/.exec(k);if(!m)return null;let p=NAT[m[1]];if(m[1]==="B"&&m[2]==="b")return 10;return (p+(m[2]==="#"?1:m[2]==="b"?-1:0)+12)%12}
 /* capo = semitones to climb from the played (capo) key up to the written key */
@@ -646,7 +650,7 @@ function vSet(){
   '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
   (ui.picker?vPicker(s):"")+(ui.keyFor?vKeySheet(s):"");
 }
-const KEY12=["C","Db","D","Eb","E","F","F#","G","Ab","A","B","H"];
+const KEY12=["C","Db","D","Eb","E","F","F#","G","Ab","A","A#","H"];
 function vKeySheet(s){
   const g=songs.get(ui.keyFor); if(!g) return "";
   const cur=(s.keys&&s.keys[g.id])||g.key||"";
@@ -1015,7 +1019,7 @@ document.addEventListener("touchend",endPull);document.addEventListener("touchca
 document.addEventListener("touchcancel",()=>endEdge(false));
 
 /* ---------- import: Notes text or a screenshot of it ---------- */
-const KEYMAP={C:"C","C#":"C#",DB:"Db",D:"D","D#":"Eb",EB:"Eb",E:"E",F:"F","F#":"F#",GB:"Gb",G:"G","G#":"Ab",AB:"Ab",A:"A","A#":"B",BB:"B",B:"B",H:"H"};
+const KEYMAP={C:"C","C#":"C#",DB:"Db",D:"D","D#":"Eb",EB:"Eb",E:"E",F:"F","F#":"F#",GB:"Gb",G:"G","G#":"Ab",AB:"Ab",A:"A","A#":"A#",BB:"A#",B:"A#",H:"H"};
 function importText(text){
   const lines=String(text).replace(/\uFFFC/g,"").split(/\r?\n/).map(l=>l.replace(/[\t\u00A0]+/g," ").trim());
   let title="",key="",body=[],started=false;
