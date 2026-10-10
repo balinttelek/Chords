@@ -856,6 +856,7 @@ function measureSab(){try{const d=document.createElement("div");d.style.cssText=
   if(v>sabMax){sabMax=v;document.documentElement.style.setProperty("--sab",v+"px")}}catch(e){}}
 window.addEventListener("resize",()=>setTimeout(measureSab,60));window.addEventListener("orientationchange",()=>{sabMax=0;setTimeout(measureSab,300)});
 function render(){
+  if(!edge) resetSwipe();
   if(!auth){$("#app").innerHTML=vLogin();document.body.style.overflow="";return}
   const v=ui.view;
   measureSab();
@@ -1019,6 +1020,10 @@ function showUnder(){
   u.innerHTML='<div class="uin" style="margin-top:'+(r.v==="home"?-(ui.homeY||0):0)+'px">'+r.html+'</div><div class="udim"></div>';
   u.style.transform="translateX(-28%)"; document.body.appendChild(u); return u;
 }
+/* a back-swipe interrupted by leaving the app (no touchend arrives) used to leave the page shifted with the previous page showing; put everything back */
+function resetSwipe(){edge=null;const a=$("#app");if(!a)return;a.style.transition="";a.style.transform="";dropUnder(a)}
+["pagehide","pageshow","blur"].forEach(ev=>window.addEventListener(ev,resetSwipe));
+document.addEventListener("visibilitychange",resetSwipe);
 function dropUnder(a){document.querySelectorAll(".under").forEach(x=>x.remove());a.classList.remove("swipefront")}
 function endEdge(commit){
   if(!edge) return; const ed=edge; edge=null; if(!ed.on) return;
@@ -1200,7 +1205,7 @@ window.addEventListener("online",()=>setTimeout(fillCovers,3000));
 if("serviceWorker" in navigator) window.addEventListener("load",()=>{
   const hadSW=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadSW)showUpdate()});
-  navigator.serviceWorker.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update().catch(()=>{})})}).catch(()=>{});
+  navigator.serviceWorker.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&r&&r.update)r.update().catch(()=>{})})}).catch(()=>{});
 });
 function showUpdate(){
   if(document.getElementById("upd")) return;
