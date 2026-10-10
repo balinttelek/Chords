@@ -88,11 +88,12 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .eyebrow{margin:12px 0 6px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eyebrow b{color:var(--accent);font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.4px;text-transform:none}
 .h1.song{margin:0 0 20px}
-.votd{position:relative;overflow:hidden;margin:0 0 16px;padding:10px 12px 12px 14px;border-radius:16px;color:#fff;isolation:isolate;cursor:pointer;
+.votd{position:relative;overflow:hidden;margin:0 0 18px;padding:16px 16px 18px 18px;border-radius:20px;color:#fff;isolation:isolate;cursor:pointer;
   background:radial-gradient(120% 90% at 90% 0%,color-mix(in srgb,var(--vc) 50%,transparent),transparent 60%),linear-gradient(160deg,var(--va),var(--vb))}
-.votd figcaption{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;opacity:.85}
-.votd figcaption b{font-weight:700}
-.votd blockquote{margin:2px 0 0;font-family:var(--serif);font-size:17px;line-height:1.35;text-wrap:pretty;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.votd figcaption{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;font-size:13px}
+.votd figcaption>span{display:flex;flex-direction:column;gap:2px;opacity:.85}
+.votd figcaption b{font-family:var(--display);font-size:17px;font-weight:700;opacity:1}
+.votd blockquote{margin:12px 0 0;font-family:var(--serif);font-size:21px;line-height:1.32;text-wrap:pretty;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden}
 .votd.open blockquote{-webkit-line-clamp:unset;display:block}
 .vshare{width:32px;height:32px;margin:-4px -6px -4px 0;display:grid;place-items:center;color:#fff;border-radius:10px;flex:none}
 .vshare svg{width:18px;height:18px}
@@ -594,8 +595,8 @@ function verseToday(){
 /* a quiet "sky" per day, like a photo card: layered gradients, no images to download */
 const SKIES=[["#1d4e5c","#0d2129","#7fb7c4"],["#3a3450","#16141f","#b3a2c9"],["#5a3f2c","#1f1511","#e0b48a"],["#2f4a3a","#111c16","#9cc2a6"],["#2a3a55","#0f1522","#94acd6"],["#4d3a3a","#1b1313","#d6a3a3"]];
 function verseCard(){const [ref,txt]=verseToday(), d=new Date(), k=(d.getFullYear()*372+d.getMonth()*31+d.getDate())%SKIES.length, [a,b,c]=SKIES[k];
-  /* compact: three lines, tap to read the rest */
-  return '<figure class="votd'+(ui.verseOpen?' open':'')+'" data-act="verseopen" style="--va:'+a+';--vb:'+b+';--vc:'+c+'"><figcaption><span>Mai ige · <b>'+esc(ref)+'</b></span><button class="vshare" data-act="shareverse" aria-label="Megosztás">'+ico.share+'</button></figcaption>'+
+  /* five lines, tap to read the rest */
+  return '<figure class="votd'+(ui.verseOpen?' open':'')+'" data-act="verseopen" style="--va:'+a+';--vb:'+b+';--vc:'+c+'"><figcaption><span>Mai ige<b>'+esc(ref)+'</b></span><button class="vshare" data-act="shareverse" aria-label="Megosztás">'+ico.share+'</button></figcaption>'+
   '<blockquote>'+esc(txt)+'</blockquote></figure>'}
 function vHome(){
   if(ui.tab==="sets") return '<div class="wrap tall"><div class="top"></div><h1 class="h1">Setlistek</h1><p class="sub" id="syncStatus">'+esc(statusText())+'</p>'+verseCard()+setsList()+(sortedSets().length?'<button class="addcenter" data-act="new" aria-label="Új setlist">'+ico.plus+'</button>':'')+'</div>'+tabs();
