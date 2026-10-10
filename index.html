@@ -487,7 +487,9 @@ function chartHTML(body,key,letters,opt){
   const secs=parse(body);
   if(!secs.length) return '<div class="empty-state">Még nincs kotta ehhez a dalhoz.</div>';
   const shown=to||key;
-  const kb=opt.bigKey&&shown?'<div class="kbig"><span class="klbl">Key</span>'+esc(shown)+(to&&key?'<span class="korig">'+korig(key,opt.ref,to)+'</span>':'')+'</div>':'';
+  /* label whenever the shown key differs from the song's own key or from the setlist key it is played against */
+  const lab=key&&(to||(opt.ref&&opt.ref!==key))?'<span class="korig">'+korig(key,opt.ref,shown)+'</span>':'';
+  const kb=opt.bigKey&&shown?'<div class="kbig"><span class="klbl">Key</span>'+esc(shown)+lab+'</div>':'';
   return '<div class="chart">'+kb+secs.map(s=>{
     const n=Math.max(1,...s.rows.map(r=>r.length));
     const rows=s.rows.map(r=>r.map((t,i)=>{const c=cell(t,key,letters,to);return '<span class="t'+(i===0?" first":"")+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join("")).join("");
