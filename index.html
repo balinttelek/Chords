@@ -112,6 +112,14 @@ input,textarea,select{font:inherit;color:var(--ink)}
 .empty{background:var(--surface);border-radius:16px;padding:36px 24px 28px;display:flex;flex-direction:column;align-items:center;text-align:center}
 .empty h2{margin:0 0 8px;font-family:var(--display);font-weight:700;font-size:20px}
 .empty p{margin:0 0 22px;color:var(--muted);font-size:15px;line-height:1.45;max-width:270px}
+.empty.compact{padding:14px 14px 14px;align-items:stretch;text-align:left}
+.empty.compact .erow{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.empty.compact h2{font-size:17px;margin:0 0 2px}
+.empty.compact p{margin:0;font-size:14px;max-width:none}
+.empty.compact .ebtn{justify-content:center;height:44px}
+.etile{flex:none;width:52px;height:56px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.etile b{font-family:var(--display);font-weight:800;font-size:22px}
+.etile small{font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:3px}
 .ebtn{height:48px;padding:0 22px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px;display:inline-flex;align-items:center;gap:8px}
 .epic{position:relative;width:104px;height:88px;margin-bottom:22px}
 .ec{position:absolute;left:18px;top:4px;width:68px;height:80px;border-radius:12px}
@@ -528,6 +536,8 @@ function emptyState(kind){
   const T={sets:["Még nincs setlist","Rakd össze a következő alkalmat, és színpadon egy koppintással lapozhatsz a dalok között.","new","Első setlist"],
     songs:["Még nincs dal","Írd be az első kottádat, vagy illeszd be egy képernyőképről.","new","Első dal"],
     set:["Üres a setlist","Válaszd ki a dalokat, a sorrendet utána húzással rendezheted.","picker","Dalok hozzáadása"]}[kind];
+  /* on the home tab it sits under the verse card, so it is a short row instead of a tall card */
+  if(kind==="sets") return '<div class="empty compact"><div class="erow"><span class="etile"><b>'+t.getDate()+'</b><small>'+M[t.getMonth()]+'</small></span><div><h2>'+T[0]+'</h2><p>Rakd össze a következő alkalmat.</p></div></div><button class="ebtn" data-act="'+T[2]+'">'+ico.plus.replace('width="24" height="24"','width="16" height="16"')+' '+T[3]+'</button></div>';
   return '<div class="empty">'+pic+'<h2>'+T[0]+'</h2><p>'+T[1]+'</p><button class="ebtn" data-act="'+T[2]+'">'+ico.plus.replace('width="24" height="24"','width="16" height="16"')+' '+T[3]+'</button></div>';
 }
 const WD=["Vas","Hét","Kedd","Szer","Csüt","Pén","Szo"];
