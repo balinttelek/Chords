@@ -1005,17 +1005,26 @@ function backAction(){
 }
 window.addEventListener("popstate",()=>{if(ignorePop){ignorePop=false;return}backAction()});
 const canGoBack=()=>ui.view!=="home"||ui.picker||ui.coverPick||ui.keyFor||ui.stageKey||ui.stageLib;
-/* fallback edge swipe, for when the system gesture is not available */
+/* our own edge swipe. Newer iOS also runs its system back-swipe in the installed app, and the two together drew the previous page twice;
+   cancelling the touch at the very edge stops the system one, so taps and vertical scrolls that start there are passed on by hand */
 let edge=null;
-document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=(e.touches.length===1&&t.clientX<24&&canGoBack()&&ui.view!=="stage")?{x:t.clientX,y:t.clientY,dx:0,on:false}:null},{passive:true});
+function scrollerOf(el){for(let n=el;n&&n!==document.body;n=n.parentElement){const cs=getComputedStyle(n);if(/(auto|scroll)/.test(cs.overflowY)&&n.scrollHeight>n.clientHeight+1)return n}return null}
+document.addEventListener("touchstart",e=>{const t=e.touches[0];edge=null;
+  if(e.touches.length!==1||t.clientX>=24||!canGoBack()||ui.view==="stage") return;
+  e.preventDefault(); edge={x:t.clientX,y:t.clientY,ly:t.clientY,dx:0,on:false,scroll:false,tgt:e.target}},{passive:false});
 document.addEventListener("touchmove",e=>{
   if(!edge) return; const t=e.touches[0], dx=t.clientX-edge.x, dy=t.clientY-edge.y;
-  if(!edge.on){if(dx>12&&dx>Math.abs(dy)*1.5)edge.on=true;else if(Math.abs(dy)>12){edge=null;return}else return}
+  if(edge.scroll){const sc=scrollerOf(edge.tgt),d=edge.ly-t.clientY;edge.ly=t.clientY;if(sc)sc.scrollTop+=d;else window.scrollBy(0,d);return}
+  if(!edge.on){if(dx>12&&dx>Math.abs(dy)*1.5)edge.on=true;else if(Math.abs(dy)>12){edge.scroll=true;edge.ly=t.clientY;const sc=scrollerOf(edge.tgt);if(sc)sc.scrollTop-=dy;else window.scrollBy(0,-dy);return}else return}
   e.preventDefault(); edge.dx=Math.max(0,dx); const a=$("#app");
-  if(!edge.under){edge.under=showUnder();a.classList.add("swipefront")}
+  if(!edge.under){edge.under=showUnder();pinFixed(a);a.classList.add("swipefront")}
   a.style.transition="none"; a.style.transform="translateX("+edge.dx+"px)";
   if(edge.under){const p=Math.min(1,edge.dx/innerWidth);edge.under.style.transition="none";edge.under.style.transform="translateX("+(-28*(1-p))+"%)";edge.under.querySelector(".udim").style.opacity=String(.35*(1-p))}
 },{passive:false});
+/* a transformed page re-anchors its fixed bars (Indítás, +, tab bar) to itself, which made them jump while swiping; hold them where they were */
+function pinFixed(a){const ar=a.getBoundingClientRect();
+  a.querySelectorAll(".cta,.fab,.tabs").forEach(el=>{const r=el.getBoundingClientRect();el.style.top=(r.top-ar.top)+"px";el.style.bottom="auto";el.dataset.pin="1"})}
+function unpinFixed(a){a.querySelectorAll("[data-pin]").forEach(el=>{el.style.top="";el.style.bottom="";delete el.dataset.pin})}
 /* the page you'd go back to, drawn underneath while you swipe, like the stage's card paging */
 function underHTML(){
   if(ui.picker||ui.keyFor||ui.stageKey||ui.stageLib) return null;
@@ -1037,9 +1046,10 @@ function showUnder(){
 function resetSwipe(){edge=null;const a=$("#app");if(!a)return;a.style.transition="";a.style.transform="";dropUnder(a)}
 ["pagehide","pageshow","blur"].forEach(ev=>window.addEventListener(ev,resetSwipe));
 document.addEventListener("visibilitychange",resetSwipe);
-function dropUnder(a){document.querySelectorAll(".under").forEach(x=>x.remove());a.classList.remove("swipefront")}
+function dropUnder(a){document.querySelectorAll(".under").forEach(x=>x.remove());a.classList.remove("swipefront");unpinFixed(a)}
 function endEdge(commit){
-  if(!edge) return; const ed=edge; edge=null; if(!ed.on) return;
+  if(!edge) return; const ed=edge; edge=null;
+  if(!ed.on){if(!ed.scroll&&commit&&ed.lastTap){const el=ed.tgt;if(el.matches&&el.matches("input,select,textarea"))el.focus();else if(el.click)el.click()}return}
   const a=$("#app"), u=ed.under; quiet();
   if(commit&&ed.dx>90){a.style.transition="transform .2s ease-out";a.style.transform="translateX(100%)";
     if(u){u.style.transition="transform .2s ease-out";u.style.transform="none";u.querySelector(".udim").style.transition="opacity .2s";u.querySelector(".udim").style.opacity="0"}
@@ -1047,7 +1057,7 @@ function endEdge(commit){
   else{a.style.transition="transform .2s ease-out";a.style.transform="";if(u){u.style.transition="transform .2s ease-out";u.style.transform="translateX(-28%)"}
     setTimeout(()=>{a.style.transition="";dropUnder(a)},200)}
 }
-document.addEventListener("touchend",()=>endEdge(true));
+document.addEventListener("touchend",e=>{if(edge&&!edge.on){const c=e.changedTouches[0];edge.lastTap=Math.abs(c.clientX-edge.x)<10&&Math.abs(c.clientY-edge.y)<10}endEdge(true)});
 let edgeTap=null;
 document.addEventListener("touchstart",e=>{edgeTap=null;
   if(ui.view!=="stage"||ui.stageKey||ui.stageLib||e.touches.length!==1) return; const t=e.touches[0];
