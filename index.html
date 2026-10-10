@@ -266,6 +266,7 @@ html{background:var(--bg)}
 .kopt{height:58px;border-radius:14px;background:var(--surface);font-family:var(--display);font-weight:700;font-size:22px;position:relative}
 .kopt.orig::after{content:"eredeti";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
 .kopt.on{background:var(--accent);color:var(--accent-ink)}
+.kdone{height:40px;padding:0 18px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px}
 .kopt{transition:transform .08s,background-color .08s;touch-action:manipulation}.kopt:active{transform:scale(.95)}
 .kopt.on.orig::after{color:inherit}
 .kopt.base::after{content:"setlist";position:absolute;left:0;right:0;bottom:4px;font-family:var(--body);font-size:10px;font-weight:600;color:var(--muted)}
@@ -711,10 +712,12 @@ function libList(){
 }
 function vStageKey(id,s,cur){
   const st=ui.stage, base=stageBase(st,id), fromSet=base!==s.key;
-  return '<div class="sheet-bg" data-act="goback"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(s.title)+'</span><button class="link" data-act="goback">Kész</button></div>'+
-  '<p class="sub" style="margin-bottom:12px">'+(base?(fromSet?'setlist: ':'eredeti: ')+esc(base):'')+(capoFor(base,cur)?' · most: capo '+capoFor(base,cur):'')+'&nbsp;</p>'+
+  /* on stage a tap only selects; Kész applies it, so fast taps can't flip the chart and land on the page-turn zones */
+  return '<div class="sheet-bg" data-act="goback"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(s.title)+'</span><button class="kdone" data-act="stagedone">Kész</button></div>'+
+  '<p class="sub" id="skSub" style="margin-bottom:12px">'+stageSub(base,fromSet,cur)+'</p>'+
   '<div class="kgrid">'+KEY12.map(k=>{const c=capoFor(base,k);return '<button class="kopt'+(k===cur?" on":"")+(k===base?(fromSet?" base":" orig"):"")+'" data-act="stagepick" data-v="'+k+'">'+k+(c?'<span class="cp">capo '+c+'</span>':'')+'</button>'}).join("")+'</div></div>';
 }
+function stageSub(base,fromSet,cur){return (base?(fromSet?'setlist: ':'eredeti: ')+esc(base):'')+(capoFor(base,cur)?' · most: capo '+capoFor(base,cur):'')+'&nbsp;'}
 function stageChart(id,cid){
   const st=ui.stage, s=songs.get(id)||{body:""};
   return chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],ref:st.base&&st.base[id],bigKey:true}).replace('class="chart"','id="'+cid+'" class="chart"');
@@ -741,7 +744,9 @@ function releaseScreen(){try{wake&&wake.release()}catch(e){}wake=null}
 const reduceMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 const hasSong=d=>{const st=ui.stage;return !!st&&st.i+d>=0&&st.i+d<st.list.length};
 let flying=false;
+let stageCalm=0;
 function step(d){
+  if(Date.now()-stageCalm<600) return;
   const st=ui.stage; if(!st||flying||!hasSong(d)) return;
   const card=$("#stCard");
   const go=()=>{flying=false;if(ui.stage!==st)return;st.i+=d;render()};
@@ -757,7 +762,7 @@ function step(d){
 }
 let cd=null;
 document.addEventListener("pointerdown",e=>{
-  if(ui.view!=="stage"||flying||ui.stageKey||ui.stageLib||e.clientX<24||!e.target.closest("#stArea")) return;
+  if(ui.view!=="stage"||flying||ui.stageKey||ui.stageLib||Date.now()-stageCalm<600||e.clientX<24||!e.target.closest("#stArea")) return;
   cd={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId,on:false,dx:0};
 });
 document.addEventListener("pointermove",e=>{
@@ -879,8 +884,10 @@ document.addEventListener("click",e=>{
         if(sl){const ids=(sl.songIds||[]).filter(x=>songs.has(x)), cur=st.list[st.i], at=ids.indexOf(cur); ids.splice(at<0?ids.length:at+1,0,id); put("setlists",sl.id,{...sl,songIds:ids,updatedAt:Date.now()})}}
       st.i=k; st.enter=1; history.back()} break;
     case "stagepick": {const st=ui.stage; if(!st)break; const sid=st.list[st.i], s=songs.get(sid), v=b.dataset.v;
-      if(s&&v===s.key&&!st.base[sid]) delete st.keys[sid]; else st.keys[sid]=v;
-      markKey(b); closeKeySoon()} break;
+      ui.stagePick=v; markKey(b); const base=stageBase(st,sid), sub=$("#skSub"); if(sub) sub.innerHTML=stageSub(base,base!==(s&&s.key),v)} break;
+    case "stagedone": {const st=ui.stage, v=ui.stagePick; if(st&&v){const sid=st.list[st.i], s=songs.get(sid);
+      if(s&&v===s.key&&!st.base[sid]) delete st.keys[sid]; else st.keys[sid]=v}
+      ui.stagePick=null; history.back()} break;
     case "goback": history.back(); break;
     case "prev": step(-1); break;
     case "next": step(1); break;
@@ -923,7 +930,7 @@ let noActT=0;function noAct(){document.body.classList.add("noact");clearTimeout(
 function goHome(){const y=ui.homeY||0;go("home");window.scrollTo(0,y);requestAnimationFrame(()=>window.scrollTo(0,y))}
 function backAction(){
   if(ui.stageLib){ui.stageLib=false;render();return}
-  if(ui.stageKey){ui.stageKey=false;render();return}
+  if(ui.stageKey){ui.stageKey=false;ui.stagePick=null;stageCalm=Date.now();render();return}
   if(ui.keyFor){ui.keyFor=null;render();return}
   if(ui.picker){ui.picker=false;render();return}
   if(ui.coverPick){ui.coverPick=false;render();return}
