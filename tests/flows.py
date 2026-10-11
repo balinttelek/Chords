@@ -85,7 +85,7 @@ with sync_playwright() as p:
         sub = page.inner_text("#skSub")
         idxk = int(__import__("re").search(r"(\d+)/\d+", page.inner_text(".st-top")).group(1))
         page.locator('[data-act="stagedone"]').tap(); page.wait_for_timeout(120)
-        page.locator('[data-act="next"]').tap(); page.wait_for_timeout(700); shot(page, f"{scheme}-12-stage-key")
+        page.locator('.st-zone[data-act="next"]').tap(); page.wait_for_timeout(700); shot(page, f"{scheme}-12-stage-key")
         check(int(__import__("re").search(r"(\d+)/\d+", page.inner_text(".st-top")).group(1)) == idxk, f"[{scheme}] stray tap right after Kész doesn't turn the page")
         check("C" in page.inner_text(".skey"), f"[{scheme}] Kész applies the stage key (button shows {page.inner_text('.skey')}, sub '{sub}')")
         # immediate tap on next zone right after closing is ignored
@@ -93,7 +93,7 @@ with sync_playwright() as p:
         IDX=lambda: int(_re.search(r"(\d+)/\d+", page.inner_text(".st-top")).group(1))
         idx0 = IDX()
         page.wait_for_timeout(500)
-        page.locator('[data-act="next"]').tap(); page.wait_for_timeout(800)
+        page.locator('.st-zone[data-act="next"]').tap(); page.wait_for_timeout(800)
         check(IDX() == idx0 + 1, f"[{scheme}] next tap turns the page later")
         # back gesture keeps stage
         page.go_back(); page.wait_for_timeout(500)

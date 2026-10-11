@@ -213,6 +213,16 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .st-bot .nx span{max-width:none}
 .st-bot .nt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .st-bot .nk{color:var(--sacc);font-weight:800;font-size:16px}
+.st-bot .peek{flex:1;min-width:0;max-width:none;display:flex;flex-direction:column;align-items:flex-end;gap:1px;background:var(--sbtn);border-radius:14px;padding:6px 12px 7px;color:var(--sfg);text-align:right}
+.st-bot .peek span{max-width:100%}
+.peek .ph{display:flex;align-items:baseline;gap:6px;font-size:13.5px;min-width:0}
+.peek .pl{flex:none;color:var(--smuted);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.peek .ph b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.peek .ph i{flex:none;font-style:normal;color:var(--sacc);font-weight:800}
+.peek .pr{display:flex;align-items:baseline;gap:.5em;font-family:var(--display);font-weight:700;font-size:22px;line-height:1.1;overflow:hidden}
+.peek .pr em{font-family:var(--body);font-style:normal;font-size:12px;font-weight:700;color:var(--sacc);margin-right:.15em;white-space:nowrap}
+.peek .pt{flex:none}.peek .pt.mark{font-family:var(--body);font-size:.55em;color:var(--smuted)}
+.peek .pt .sl,.peek .pt .q{font-size:.6em}
 
 /* sheet */
 .sheet::before,.ksheet::before{content:"";display:block;flex:none;width:38px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 2px}
@@ -804,7 +814,15 @@ function vStage(){
   '<div class="info"><b>'+(st.list.length>1?(st.i+1)+(jb?"–"+(st.i+2):"")+"/"+st.list.length+"  ":"")+esc(s.title)+(jb?" + "+esc(s2.title):"")+'</b><span>'+esc(sub)+'</span></div>'+
   '<button class="sbtn skey" data-act="stagekey" aria-label="Hangnem váltása">'+esc(jb?(shownKey||"–")+" · "+(shownKey2||"–"):(shownKey||"Key"))+'</button><button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"☾":"☀")+'</button></div>'+
   '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+pageChart(st.i,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
-  '<div class="st-bot"><button class="sbtn slib" data-act="stagelib">'+ico.search+' Dalok</button><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div>'+(ui.stageKey?vStageKey(kid,ks,kOf(kid),jb?[id,jb]:null):"")+(ui.stageLib?vStageLib():"")+'</div>';
+  '<div class="st-bot"><button class="sbtn slib" data-act="stagelib">'+ico.search+' Dalok</button>'+(next?peekHTML(st.list[ni],nextKey):'<span class="nx">'+(st.list.length>1?"Vége":"")+'</span>')+'</div>'+(ui.stageKey?vStageKey(kid,ks,kOf(kid),jb?[id,jb]:null):"")+(ui.stageLib?vStageLib():"")+'</div>';
+}
+/* the next song's key and its first line, so a segue needs no page turn */
+function peekHTML(nid,nk){
+  const g=songs.get(nid)||{title:"?",body:""}, st=ui.stage, sec=parse(g.body)[0], row=sec&&sec.rows[0];
+  const to=st.keys&&st.keys[nid]&&st.keys[nid]!==g.key?st.keys[nid]:"";
+  const cells=row?row.slice(0,8).map(t=>{const c=cell(t,g.key,prefs.letters,to);return '<span class="pt'+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join(""):"";
+  return '<button class="peek" data-act="next"><span class="ph"><span class="pl">Következő</span><b>'+esc(g.title)+'</b>'+(nk?'<i>'+esc(nk)+'</i>':'')+'</span>'+
+    (cells?'<span class="pr">'+(sec.label?'<em>'+esc(sec.label)+'</em>':'')+cells+'</span>':'')+'</button>';
 }
 function vStageLib(){
   return '<div class="sheet-bg" data-act="goback"></div><div class="sheet" role="dialog" aria-label="Daltár"><div class="shead"><div class="top"><span style="font-weight:700">Daltár</span><button class="link" data-act="goback">Mégse</button></div>'+
