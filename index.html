@@ -305,6 +305,24 @@ html{background:var(--bg)}
 .kopt.on .cp{color:inherit}
 .chart .kbig{grid-column:1/-1;font-size:max(1em,64px);line-height:1;margin-bottom:.22em;display:flex;align-items:baseline;gap:.25em}
 .chart .klbl{font-family:var(--body);font-size:.26em;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sacc,var(--accent))}
+.combo{display:inline-flex;flex-direction:column;align-items:stretch}
+.combo>.chart{display:grid}
+.jdiv{display:flex;align-items:center;gap:.6em;font-family:var(--body);font-weight:700;font-size:max(12px,.3em);color:var(--sacc,var(--accent));margin:.7em 0 .6em;white-space:nowrap}
+.jdiv::before,.jdiv::after{content:"";flex:1;border-top:2px dashed var(--sbtn,var(--line));min-width:1em}
+.jdiv em{font-style:normal;color:#F2A65A}
+.stage.light .jdiv em{color:#B5651D}
+.t2.jn{color:var(--accent);display:flex;align-items:center;gap:4px;font-weight:600}
+.srow.ja .sfront{box-shadow:inset 3px 0 0 var(--accent)}
+.grouped .srow+.srow.ja .sfront,.grouped .srow.jb .sfront{box-shadow:inset 3px 0 0 var(--accent),inset 0 1px 0 var(--line)}
+.joinrow{display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--surface);color:var(--accent);text-align:left}
+.joinrow .jt{flex:1;min-width:0;display:flex;flex-direction:column;color:var(--ink)}
+.joinrow .jt b{font-size:15.5px}.joinrow .jt span{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.joinrow .sw{width:44px;height:26px;border-radius:13px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.joinrow .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.joinrow.on .sw{background:var(--accent)}.joinrow.on .sw::after{transform:translateX(18px)}
+.ktabs{display:flex;gap:6px;margin:0 0 10px;background:var(--surface);border-radius:12px;padding:3px}
+.ktabs button{flex:1;min-width:0;padding:8px 6px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ktabs button.on{background:var(--bg);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .chart .korig{font-family:var(--body);font-size:.22em;font-weight:600;color:var(--smuted,var(--muted));margin-left:.4em}
 .imp{display:flex;gap:8px;margin:4px 0 10px;flex-wrap:wrap}
 .impbtn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:15px;border-radius:12px;padding:10px 14px;cursor:pointer}
@@ -327,7 +345,7 @@ html{background:var(--bg)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const KEYS=["C","C#","Db","D","Eb","E","F","F#","Gb","G","Ab","A","A#","H"];
-const ico={
+const ico={link:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
   share:'<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   cal:'<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="1.5" y="2.5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1.5 6h11M4.5 1v3M9.5 1v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   back:'<svg width="11" height="19" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -707,10 +725,12 @@ function vEdit(){
 function vSet(){
   const s=setlists.get(ui.id); if(!s){ui.view="home";return vHome()}
   const ids=(s.songIds||[]).filter(id=>songs.has(id));
+  const J=s.joins||{}, jn=i=>!!J[ids[i]]&&i+1<ids.length;
   const rows=ids.map((id,i)=>{const g=songs.get(id);
     const lead=coverEl(g), over=s.keys&&s.keys[id]&&s.keys[id]!==g.key&&g.key;
     const meta=over?'<div class="t2 orig">eredeti: '+esc(g.key)+'</div>':(songMeta(g)?'<div class="t2">'+esc(songMeta(g))+'</div>':"");
-    return '<div class="srow" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+meta+'</div>'+setTile(s,g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
+    const jm=jn(i)?'<div class="t2 jn">'+ico.link+' összefűzve a következővel</div>':'';
+    return '<div class="srow'+(jn(i)?" ja":"")+(i>0&&jn(i-1)?" jb":"")+'" data-i="'+i+'"><div class="sbg">'+ico.trash+' Kivétel</div><div class="sfront" data-act="playfrom" data-i="'+i+'">'+lead+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+meta+jm+'</div>'+setTile(s,g)+'<span class="grip" aria-hidden="true">'+ico.grip+'</span></div></div>'}).join("");
   return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button></div>'+
   '<label class="eyebrow dateline">'+ico.cal+'<span id="s-dl">'+esc(dateLine(s,ids.length))+'</span><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum"></label>'+
   '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off">'+
@@ -726,7 +746,13 @@ function vKeySheet(s){
   const cur=(s.keys&&s.keys[g.id])||g.key||"";
   return '<div class="sheet-bg" data-act="closekey"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(g.title)+'</span><button class="link" data-act="closekey">Kész</button></div>'+
   (g.key?'<p class="sub" style="margin-bottom:12px">eredeti: '+esc(g.key)+'</p>':'<div style="height:8px"></div>')+
-  '<div class="kgrid">'+KEY12.map(k=>'<button class="kopt'+(k===cur?" on":"")+(k===g.key?" orig":"")+'" data-act="pickkey" data-v="'+k+'">'+k+'</button>').join("")+'</div></div>';
+  '<div class="kgrid">'+KEY12.map(k=>'<button class="kopt'+(k===cur?" on":"")+(k===g.key?" orig":"")+'" data-act="pickkey" data-v="'+k+'">'+k+'</button>').join("")+'</div>'+joinRow(s,g)+'</div>';
+}
+/* mashup: a song joined with the next one shows on one stage page with it */
+function joinRow(s,g){
+  const ids=(s.songIds||[]).filter(id=>songs.has(id)), k=ids.indexOf(g.id), nx=k>=0&&songs.get(ids[k+1]); if(!nx) return "";
+  const on=!!(s.joins&&s.joins[g.id]);
+  return '<button class="joinrow'+(on?" on":"")+'" data-act="togglejoin">'+ico.link+'<span class="jt"><b>Összefűzés a következővel</b><span>'+esc(nx.title)+' · színpadon egy lapon</span></span><span class="sw" aria-hidden="true"></span></button>';
 }
 /* cover picker: search the Apple catalog, one tile per album, tap to use it */
 function vCoverPick(){
@@ -766,16 +792,19 @@ function pickList(s){
 /* ---------- stage ---------- */
 function vStage(){
   const st=ui.stage, id=st.list[st.i], s=songs.get(id)||{title:"?",body:""};
-  const prev=st.list[st.i-1]&&songs.get(st.list[st.i-1]), next=st.list[st.i+1]&&songs.get(st.list[st.i+1]);
-  const sub=[s.bpm?s.bpm+" BPM":"",s.notes].filter(Boolean).join(" · ");
-  const shownKey=(st.keys&&st.keys[id])||s.key||"";
-  const nextKey=next?((st.keys&&st.keys[st.list[st.i+1]])||next.key||""):"";
+  const jb=joinedAt(st,st.i)?st.list[st.i+1]:null, s2=jb&&(songs.get(jb)||{title:"?",key:""}), ni=pageNext(st,st.i);
+  const next=st.list[ni]&&songs.get(st.list[ni]);
+  const sub=jb?"mashup":[s.bpm?s.bpm+" BPM":"",s.notes].filter(Boolean).join(" · ");
+  const kOf=x=>(st.keys&&st.keys[x])||(songs.get(x)||{}).key||"";
+  const shownKey=kOf(id), shownKey2=jb?kOf(jb):"";
+  const nextKey=next?kOf(st.list[ni]):"";
+  const kid=ui.stageKeyFor&&(ui.stageKeyFor===id||ui.stageKeyFor===jb)?ui.stageKeyFor:id, ks=songs.get(kid)||s;
   const enter=st.enter?" enter":""; st.enter=0;
   return '<div class="stage'+(prefs.light?" light":"")+'" id="stage"><div class="st-top"><button class="sbtn" data-act="exitstage">Kész</button>'+
-  '<div class="info"><b>'+(st.list.length>1?(st.i+1)+"/"+st.list.length+"  ":"")+esc(s.title)+'</b><span>'+esc(sub)+'</span></div>'+
-  '<button class="sbtn skey" data-act="stagekey" aria-label="Hangnem váltása">'+esc(shownKey||"Key")+'</button><button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"☾":"☀")+'</button></div>'+
-  '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+stageChart(id,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
-  '<div class="st-bot"><button class="sbtn slib" data-act="stagelib">'+ico.search+' Dalok</button><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div>'+(ui.stageKey?vStageKey(id,s,shownKey):"")+(ui.stageLib?vStageLib():"")+'</div>';
+  '<div class="info"><b>'+(st.list.length>1?(st.i+1)+(jb?"–"+(st.i+2):"")+"/"+st.list.length+"  ":"")+esc(s.title)+(jb?" + "+esc(s2.title):"")+'</b><span>'+esc(sub)+'</span></div>'+
+  '<button class="sbtn skey" data-act="stagekey" aria-label="Hangnem váltása">'+esc(jb?(shownKey||"–")+" · "+(shownKey2||"–"):(shownKey||"Key"))+'</button><button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"☾":"☀")+'</button></div>'+
+  '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+pageChart(st.i,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
+  '<div class="st-bot"><button class="sbtn slib" data-act="stagelib">'+ico.search+' Dalok</button><span class="nx">'+(next?'<span class="nl">Következő:</span><span class="nt">'+esc(next.title)+'</span>'+(nextKey?'<span class="nk">('+esc(nextKey)+')</span>':"")+'<span class="nl">›</span>':(st.list.length>1?"Vége":""))+'</span></div>'+(ui.stageKey?vStageKey(kid,ks,kOf(kid),jb?[id,jb]:null):"")+(ui.stageLib?vStageLib():"")+'</div>';
 }
 function vStageLib(){
   return '<div class="sheet-bg" data-act="goback"></div><div class="sheet" role="dialog" aria-label="Daltár"><div class="shead"><div class="top"><span style="font-weight:700">Daltár</span><button class="link" data-act="goback">Mégse</button></div>'+
@@ -786,49 +815,65 @@ function libList(){
   if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
   return '<div class="glist">'+arr.map(g=>'<button class="row" data-act="libpick" data-id="'+g.id+'">'+coverEl(g,"sm")+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(inList.has(g.id)?'<div class="t2">Már a listában van, odaugrik</div>':'')+'</div>'+chip(g)+'</button>').join("")+'</div>';
 }
-function vStageKey(id,s,cur){
+function vStageKey(id,s,cur,pair){
   const st=ui.stage, base=stageBase(st,id), fromSet=base!==s.key;
+  const tabs=pair?'<div class="ktabs">'+pair.map(x=>'<button class="'+(x===id?"on":"")+'" data-act="stagekeyfor" data-id="'+x+'">'+esc((songs.get(x)||{}).title||"?")+'</button>').join("")+'</div>':'';
   /* on stage a tap only selects; Kész applies it, so fast taps can't flip the chart and land on the page-turn zones */
   return '<div class="sheet-bg" data-act="goback"></div><div class="ksheet" role="dialog" aria-label="Hangnem"><div class="top"><span style="font-weight:700">'+esc(s.title)+'</span><button class="kdone" data-act="stagedone">Kész</button></div>'+
-  '<p class="sub" id="skSub" style="margin-bottom:12px">'+stageSub(base,fromSet,cur)+'</p>'+
+  tabs+'<p class="sub" id="skSub" style="margin-bottom:12px">'+stageSub(base,fromSet,cur)+'</p>'+
   '<div class="kgrid">'+KEY12.map(k=>{const c=capoFor(base,k);return '<button class="kopt'+(k===cur?" on":"")+(k===base?(fromSet?" base":" orig"):"")+'" data-act="stagepick" data-v="'+k+'">'+k+(c?'<span class="cp">capo '+c+'</span>':'')+'</button>'}).join("")+'</div></div>';
 }
 function stageSub(base,fromSet,cur){return (base?(fromSet?'setlist: ':'eredeti: ')+esc(base):'')+(capoFor(base,cur)?' · most: capo '+capoFor(base,cur):'')+'&nbsp;'}
 function stageChart(id,cid){
   const st=ui.stage, s=songs.get(id)||{body:""};
-  return chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],ref:st.base&&st.base[id],bigKey:true}).replace('class="chart"','id="'+cid+'" class="chart"');
+  const h=chartHTML(s.body,s.key,prefs.letters,{to:st.keys&&st.keys[id],ref:st.base&&st.base[id],bigKey:true});
+  return cid?h.replace('class="chart"','id="'+cid+'" class="chart"'):h;
 }
 function backCard(d){
-  const st=ui.stage, nid=st.list[st.i+d]; if(!nid) return "";
-  return '<div class="st-card back" id="'+(d>0?"stNext":"stPrev")+'" aria-hidden="true">'+stageChart(nid,d>0?"stChartN":"stChartP")+'</div>';
+  const st=ui.stage, t=pageTo(st,d); if(t<0||t>=st.list.length) return "";
+  return '<div class="st-card back" id="'+(d>0?"stNext":"stPrev")+'" aria-hidden="true">'+pageChart(t,d>0?"stChartN":"stChartP")+'</div>';
+}
+const SHIFT=["ugyanabban a hangnemben","fél hang fel","egész hang fel","3 félhang fel","4 félhang fel","5 félhang fel","6 félhang","5 félhang le","4 félhang le","3 félhang le","egész hang le","fél hang le"];
+function pageChart(i,cid){
+  const st=ui.stage, a=st.list[i]; if(!joinedAt(st,i)) return stageChart(a,cid);
+  const b=st.list[i+1], g=songs.get(b)||{title:"?"}, kA=(st.keys&&st.keys[a])||(songs.get(a)||{}).key, kB=(st.keys&&st.keys[b])||g.key;
+  const pa=keyPc(kA), pb=keyPc(kB), sh=pa===null||pb===null?"":SHIFT[(pb-pa+12)%12];
+  return '<div id="'+cid+'" class="combo">'+stageChart(a,"")+'<div class="jdiv"><span>tovább: '+esc(g.title)+(sh?' · <em>'+sh+'</em>':'')+'</span></div>'+stageChart(b,"")+'</div>';
 }
 function fit(){["stChart","stChartN","stChartP"].forEach(fitOne)}
 function fitOne(cid){
   const area=$("#stArea"), ch=document.getElementById(cid); if(!area||!ch) return;
   const W=area.clientWidth-16, H=area.clientHeight-10; let best={f:0,m:"top"};
+  const parts=ch.classList.contains("combo")?[...ch.children].filter(x=>x.classList.contains("chart")):null;
+  const setM=m=>{if(parts)parts.forEach(x=>x.className="chart lbl-"+m);else ch.className="chart lbl-"+m};
   for(const m of ["top","left"]){
-    ch.className="chart lbl-"+m; let lo=10,hi=560;
+    setM(m); let lo=10,hi=560;
     for(let k=0;k<14;k++){const mid=(lo+hi)/2;ch.style.fontSize=mid+"px";if(ch.offsetWidth<=W&&ch.offsetHeight<=H)lo=mid;else hi=mid}
     if(lo>best.f*1.04) best={f:lo,m};
   }
-  ch.className="chart lbl-"+best.m; ch.style.fontSize=Math.floor(best.f)+"px";
+  setM(best.m); ch.style.fontSize=Math.floor(best.f)+"px";
 }
 let wake=null;
 async function lockScreen(){try{if("wakeLock" in navigator&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>wake=null)}}catch(e){}}
 function releaseScreen(){try{wake&&wake.release()}catch(e){}wake=null}
 /* card-style paging: the current card follows the finger, flies off, and the next one rises from behind */
 const reduceMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
-const hasSong=d=>{const st=ui.stage;return !!st&&st.i+d>=0&&st.i+d<st.list.length};
+const joinedAt=(st,i)=>!!(st.joins&&st.joins[st.list[i]]&&i+1<st.list.length);
+const pageNext=(st,i)=>i+(joinedAt(st,i)?2:1);
+const pagePrev=(st,i)=>i-1<0?-1:(i-2>=0&&joinedAt(st,i-2)?i-2:i-1);
+const pageTo=(st,d)=>d>0?pageNext(st,st.i):pagePrev(st,st.i);
+const hasSong=d=>{const st=ui.stage;if(!st)return false;const t=pageTo(st,d);return t>=0&&t<st.list.length};
 let flying=false;
 let stageCalm=0;
 function step(d){
   if(Date.now()-stageCalm<600) return;
   const st=ui.stage; if(!st||flying||!hasSong(d)) return;
   const card=$("#stCard");
-  const go=()=>{flying=false;if(ui.stage!==st)return;st.i+=d;render()};
+  const to=pageTo(st,d);
+  const go=()=>{flying=false;if(ui.stage!==st)return;st.i=to;render()};
   const back=document.getElementById(d>0?"stNext":"stPrev");
   if(back&&!reduceMotion()){back.classList.add("show");back.style.transition="transform .22s ease-out, opacity .22s";back.style.transform="none";back.style.opacity="1"}
-  if(!card||reduceMotion()){st.i+=d;render();return}
+  if(!card||reduceMotion()){st.i=to;render();return}
   flying=true;
   card.classList.add("moving");
   card.style.transition="transform .22s cubic-bezier(.4,0,.9,.6), opacity .22s";
@@ -864,7 +909,8 @@ document.addEventListener("pointercancel",endCard);
 /* light the tapped key at once, then close the sheet a beat later so the choice is seen */
 function markKey(b){const g=b.closest(".kgrid");if(g)g.querySelectorAll(".kopt.on").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
 let keyClosing=0;function closeKeySoon(){clearTimeout(keyClosing);keyClosing=setTimeout(()=>history.back(),180)}
-function startStage(list,i,keys,setId){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},base:{...(keys||{})},setId:setId||null,from:{view:ui.view,id:ui.id}};ui.view="stage";render();settleStage();lockScreen()}
+function startStage(list,i,keys,setId,joins){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},base:{...(keys||{})},joins:joins||{},setId:setId||null,from:{view:ui.view,id:ui.id}};
+  if(i>0&&joinedAt(ui.stage,i-1)) ui.stage.i=i-1;ui.view="stage";render();settleStage();lockScreen()}
 /* on entry iOS still shifts the layout for a few frames (safe-area insets, fonts); keep the chart hidden until the area stops changing so it appears once, at its final size */
 function settleStage(){
   const a=$("#stArea"); if(!a) return; a.classList.add("settling");
@@ -943,6 +989,8 @@ document.addEventListener("click",e=>{
     case "picker": push(); ui.picker=true; ui.pq=""; render(); break;
     case "closepicker": history.back(); break;
     case "keyfor": push(); ui.keyFor=id; render(); break;
+    case "togglejoin": {const j={...(set.joins||{})}; if(j[ui.keyFor]) delete j[ui.keyFor]; else j[ui.keyFor]=1;
+      put("setlists",set.id,{...set,joins:j,updatedAt:Date.now()}); render()} break;
     case "closekey": history.back(); break;
     case "pickkey": {const g=songs.get(ui.keyFor),keys={...(set.keys||{})};
       if(!g||b.dataset.v===g.key) delete keys[ui.keyFor]; else keys[ui.keyFor]=b.dataset.v;
@@ -952,19 +1000,20 @@ document.addEventListener("click",e=>{
       put("setlists",set.id,{...set,songIds:ids,updatedAt:Date.now()});
       $("#pickList").innerHTML=pickList(setlists.get(set.id));
       {const q=$("#pq"); if(q&&q.value){q.focus();q.setSelectionRange(0,q.value.length)}}} break;
-    case "playfrom": if(set){push();startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{},set.id)} break;
+    case "playfrom": if(set){push();startStage((set.songIds||[]).filter(x=>songs.has(x)),i,set.keys||{},set.id,set.joins||{})} break;
     case "playsong": push(); startStage([ui.id],0); break;
     case "exitstage": stageExit=true; history.back(); break;
-    case "stagekey": push(); ui.stageKey=true; render(); break;
+    case "stagekey": push(); ui.stageKey=true; ui.stageKeyFor=null; render(); break;
+    case "stagekeyfor": ui.stageKeyFor=id; ui.stagePick=null; render(); break;
     case "stagelib": push(); ui.stageLib=true; ui.lq=""; render(); setTimeout(()=>{const i=$("#lq");if(i)i.focus()},250); break;
     case "libpick": {const st=ui.stage; if(!st)break; let k=st.list.indexOf(id);
-      if(k<0){k=st.i+1; st.list.splice(k,0,id);
+      if(k<0){k=pageNext(st,st.i); st.list.splice(k,0,id);
         const sl=st.setId&&setlists.get(st.setId);
-        if(sl){const ids=(sl.songIds||[]).filter(x=>songs.has(x)), cur=st.list[st.i], at=ids.indexOf(cur); ids.splice(at<0?ids.length:at+1,0,id); put("setlists",sl.id,{...sl,songIds:ids,updatedAt:Date.now()})}}
+        if(sl){const ids=(sl.songIds||[]).filter(x=>songs.has(x)), cur=st.list[k-1], at=ids.indexOf(cur); ids.splice(at<0?ids.length:at+1,0,id); put("setlists",sl.id,{...sl,songIds:ids,updatedAt:Date.now()})}}
       st.i=k; st.enter=1; history.back()} break;
-    case "stagepick": {const st=ui.stage; if(!st)break; const sid=st.list[st.i], s=songs.get(sid), v=b.dataset.v;
+    case "stagepick": {const st=ui.stage; if(!st)break; const sid=ui.stageKeyFor||st.list[st.i], s=songs.get(sid), v=b.dataset.v;
       ui.stagePick=v; markKey(b); const base=stageBase(st,sid), sub=$("#skSub"); if(sub) sub.innerHTML=stageSub(base,base!==(s&&s.key),v)} break;
-    case "stagedone": {const st=ui.stage, v=ui.stagePick; if(st&&v){const sid=st.list[st.i], s=songs.get(sid);
+    case "stagedone": {const st=ui.stage, v=ui.stagePick; if(st&&v){const sid=ui.stageKeyFor||st.list[st.i], s=songs.get(sid);
       if(s&&v===s.key&&!st.base[sid]) delete st.keys[sid]; else st.keys[sid]=v}
       ui.stagePick=null; history.back()} break;
     case "goback": history.back(); break;
@@ -1016,7 +1065,7 @@ function goHome(){const y=ui.homeY||0;go("home");window.scrollTo(0,y);requestAni
 let stageExit=false;
 function backAction(){
   if(ui.stageLib){ui.stageLib=false;render();return}
-  if(ui.stageKey){ui.stageKey=false;ui.stagePick=null;stageCalm=Date.now();render();return}
+  if(ui.stageKey){ui.stageKey=false;ui.stagePick=null;ui.stageKeyFor=null;stageCalm=Date.now();render();return}
   if(ui.keyFor){ui.keyFor=null;render();return}
   if(ui.picker){ui.picker=false;render();return}
   if(ui.coverPick){ui.coverPick=false;render();return}
