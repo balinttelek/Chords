@@ -21,6 +21,8 @@ with sync_playwright() as p:
     page.wait_for_timeout(50)
     check(page.evaluate("window.__dp") is True, "edge touchstart is cancelled")
     cta1 = page.locator(".cta").bounding_box()["y"]
+    ov = page.evaluate("document.documentElement.scrollWidth-innerWidth")
+    check(ov <= 0, "page does not get wider mid-swipe (iOS would zoom out) (%s)" % ov)
     check(abs(cta1 - cta0) < 1, "Indítás stays at the same height mid-swipe (%s -> %s)" % (cta0, cta1))
     page.screenshot(path=os.path.dirname(__file__) + "/shots/edge-mid.png")
     for i in range(8, 16):
