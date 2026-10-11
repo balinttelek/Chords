@@ -172,6 +172,8 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
   --sbg:#000;--sfg:#fff;--smuted:#8C8F94;--sacc:#73C4D6;--sbtn:rgba(255,255,255,.12);user-select:none;-webkit-user-select:none;touch-action:pan-y}
 .stage.light{--sbg:#fff;--sfg:#000;--smuted:#5E6166;--sacc:#227A90;--sbtn:rgba(0,0,0,.07)}
 .stage .chart .lbl{color:var(--sacc)}
+.stage .chart .lbl.part{font-size:max(13px,.38em);letter-spacing:.01em}
+.stage .chart.lbl-left .lbl.part{max-width:6.5em}
 .stage .chart .t.mark{color:var(--smuted)}
 .st-top{display:flex;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top,0px)) 10px 4px}
 .st-top .info{flex:1;min-width:0;text-align:center;line-height:1.2}
@@ -524,6 +526,9 @@ function korig(key,ref,to){const base=ref||key;
   if(to===base) return 'eredeti: '+esc(key);
   const c=capoFor(base,to);return (base!==key?'setlist: ':'eredeti: ')+esc(base)+(c?' · capo '+c:'')}
 const stageBase=(st,id)=>(st.base&&st.base[id])||(songs.get(id)||{}).key||"";
+/* section names (Verse, Chorus, Bridge...) as opposed to lyric cues used as labels, like in Anthem */
+const PARTS=/^(intro|verse|pre-?chorus|chorus|post-?chorus|bridge|instrumental|inst|turnaround|interlude|refrain|ending|outro|tag|vamp|break|breakdown|solo|whole|line|chant|v[ée]gig|vers(szak)?|refr[ée]n|h[ií]d|kezd[ée]s|befejez[ée]s|last bridge|last chorus|end)\s*\d*(\s*\(.*\)|\s+(m[aá]sodik r[eé]sz|t[oö]rt|ut[aá]n .*))?$/i;
+const isPart=l=>!!l&&l.split(/\s*[,/&+]\s*/).every(x=>PARTS.test(x.trim()));
 function chartHTML(body,key,letters,opt){
   opt=opt||{}; const to=opt.to&&opt.to!==key?opt.to:"";
   const secs=parse(body);
@@ -535,7 +540,7 @@ function chartHTML(body,key,letters,opt){
   return '<div class="chart">'+kb+secs.map(s=>{
     const n=Math.max(1,...s.rows.map(r=>r.length));
     const rows=s.rows.map(r=>r.map((t,i)=>{const c=cell(t,key,letters,to);return '<span class="t'+(i===0?" first":"")+(c.cls?" "+c.cls:"")+'">'+c.html+'</span>'}).join("")).join("");
-    return '<div class="sec"><div class="lbl">'+esc(s.label)+'</div><div class="rows" style="--n:'+n+'">'+rows+'</div></div>';
+    return '<div class="sec"><div class="lbl'+(isPart(s.label)?" part":"")+'">'+esc(s.label)+'</div><div class="rows" style="--n:'+n+'">'+rows+'</div></div>';
   }).join("")+'</div>';
 }
 
