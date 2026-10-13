@@ -6,7 +6,19 @@
    iOS opens on plain black or white by mode, so the splash starts on exactly that color and the logo fades in */
 html{background:#000}#splash{background:#000}#splash .c1{stroke:#73C4D6}#splash .c2{stroke:#F2F2EE}
 @media (prefers-color-scheme: light){html{background:#fff}#splash{background:#fff}#splash .c1{stroke:#2E8CA3}#splash .c2{stroke:#17191C}}
-#splash svg{animation:splashIn .3s ease-out both}@keyframes splashIn{from{opacity:0;transform:scale(.92)}}</style>
+/* intro: the C draws itself while turning, the cross's upright drops in, the crossbar slides in from the left, then a soft glow */
+#splash svg{overflow:visible}#splash .sg{fill:#73C4D6;opacity:0;filter:blur(18px)}
+#splash .c1{stroke-dasharray:190;transform-origin:75px 75px;animation:spDraw .55s cubic-bezier(.5,0,.3,1) both,spSpin .55s cubic-bezier(.5,0,.3,1) both}
+#splash .cv{animation:spDrop .35s .45s cubic-bezier(.2,.9,.3,1.3) both}
+#splash .ch{animation:spSlide .35s .62s cubic-bezier(.2,.9,.3,1.3) both}
+#splash .sg{animation:spGlow .55s .9s ease-out both}
+@keyframes spDraw{from{stroke-dashoffset:190}to{stroke-dashoffset:0}}
+@keyframes spSpin{from{transform:rotate(-120deg)}to{transform:none}}
+@keyframes spDrop{from{transform:translateY(-90px);opacity:0}to{transform:none;opacity:1}}
+@keyframes spSlide{from{transform:translateX(-120px);opacity:0}to{transform:none;opacity:1}}
+@keyframes spGlow{from{opacity:0}40%{opacity:.55}to{opacity:0}}
+@media (prefers-color-scheme: light){#splash .sg{fill:#2E8CA3}}
+@media (prefers-reduced-motion: reduce){#splash .c1,#splash .cv,#splash .ch{animation:none}#splash .sg{display:none}}</style>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Chords</title>
 <meta name="description" content="Nashville számkották és setlistek színpadra">
@@ -345,7 +357,7 @@ html{background:var(--bg)}
 </head>
 <body>
 <!-- launch screen: the same picture iOS shows from the startup image, then it fades into the app -->
-<div id="splash" style="position:fixed;top:0;left:0;right:0;height:100lvh;z-index:100;display:grid;place-items:center;transition:opacity .35s ease"><svg width="110" height="110" viewBox="0 0 150 150" aria-hidden="true" style="transition:transform .35s ease"><path class="c1" d="M104 46a40 40 0 1 0 0 58" fill="none" stroke-width="15" stroke-linecap="round"/><path class="c2" d="M78 50v52M62 68h32" stroke-width="10" stroke-linecap="round"/></svg></div>
+<div id="splash" style="position:fixed;top:0;left:0;right:0;height:100lvh;z-index:100;display:grid;place-items:center;transition:opacity .35s ease"><svg width="110" height="110" viewBox="0 0 150 150" aria-hidden="true" style="transition:transform .35s ease"><circle class="sg" cx="76" cy="75" r="56"/><path class="c1" d="M104 46a40 40 0 1 0 0 58" fill="none" stroke-width="15" stroke-linecap="round"/><path class="c2 cv" d="M78 50v52" stroke-width="10" stroke-linecap="round"/><path class="c2 ch" d="M62 68h32" stroke-width="10" stroke-linecap="round"/></svg></div>
 <script>/* center on the whole screen exactly like the iOS startup image */try{document.getElementById("splash").style.height=screen.height+"px"}catch(e){}</script>
 <div id="app"></div>
 <div class="sbar" aria-hidden="true"></div>
@@ -1313,7 +1325,7 @@ window.addEventListener("online",()=>setTimeout(fillCovers,3000));
 /* hold the launch screen briefly, then fade it out with the logo easing forward */
 (()=>{const s=document.getElementById("splash");if(!s)return;const t0=performance.timeOrigin?Date.now()-performance.now():Date.now();
   const hide=()=>{document.documentElement.style.removeProperty("background");s.style.opacity="0";const g=s.querySelector("svg");if(g)g.style.transform="scale(1.12)";setTimeout(()=>s.remove(),380)};
-  setTimeout(hide,Math.max(0,700-(Date.now()-t0)))})();
+  setTimeout(hide,Math.max(0,(matchMedia("(prefers-reduced-motion: reduce)").matches?700:1300)-(Date.now()-t0)))})();
 if("serviceWorker" in navigator) window.addEventListener("load",()=>{
   const hadSW=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadSW)showUpdate()});
