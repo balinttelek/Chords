@@ -163,6 +163,7 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .confirm{display:flex;gap:12px;align-items:center;padding:12px 16px;flex-wrap:wrap}
 .confirm .yes{background:var(--danger);color:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
 .banner{background:var(--sunk);color:var(--muted);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:14px;line-height:1.4}
+.planbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;color:var(--accent);font-weight:600;font-size:15px;padding:8px 14px;width:max-content}
 .addrow{display:flex;align-items:center;gap:10px;color:var(--accent);font-weight:600;padding:14px;justify-content:center;border:1.5px dashed var(--line);border-radius:var(--r);width:100%}
 
 /* chart */
@@ -660,7 +661,7 @@ const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="kchip kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const chip=s=>'<span class="kchip'+(s.key?"":" empty")+'">'+esc(s.key||"–")+'</span>';
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
-const go=(view,extra)=>{noAct();Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,coverPick:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
+const go=(view,extra)=>{noAct();ui.planMsg=null;Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,coverPick:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
 /* ---------- views ---------- */
 function tabs(){
@@ -759,7 +760,9 @@ function vSet(){
   return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button></div>'+
   '<label class="eyebrow dateline">'+ico.cal+'<span id="s-dl">'+esc(dateLine(s,ids.length))+'</span><input class="datein" id="s-date" type="date" value="'+esc(s.date||"")+'" aria-label="Dátum"></label>'+
   '<input class="titlein" id="s-name" value="'+esc(s.name)+'" placeholder="Setlist neve" autocomplete="off">'+
+  (ui.planMsg&&ui.planMsg.id===s.id?'<div class="ocrmsg'+(ui.planMsg.err?" bad":"")+'" style="margin-bottom:12px">'+esc(ui.planMsg.msg)+'</div>':'')+
   '<div class="list'+(rows?' grouped':'')+'">'+(rows?rows+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button>':emptyState("set"))+'</div>'+
+  '<label class="planbtn" for="s-img">'+ico.image+' Dallista képernyőképből</label><input id="s-img" type="file" accept="image/*" multiple hidden>'+
 
   ('<div class="card" style="margin-top:28px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
   '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
@@ -1252,6 +1255,110 @@ async function ocrFile(file){
   }catch(e){ui.ocr={msg:navigator.onLine?"Nem sikerült feldolgozni a képet. Próbáld újra, vagy használd a Beillesztést.":"A képfelismeréshez internet kell.",err:1};render()}
 }
 document.addEventListener("change",e=>{if(e.target.id==="f-img"&&e.target.files[0]){ocrFile(e.target.files[0]);e.target.value=""}});
+
+/* ---------- setlist from a Planning Center screenshot ----------
+   Every item there is a row: time on the left, title, and a green round badge with the key.
+   Times anchor the rows, the badges are found by their color and read one by one. */
+const PC_KEY={C:"C","C#":"Db",Db:"Db",D:"D","D#":"Eb",Eb:"Eb",E:"E",F:"F","F#":"F#",Gb:"F#",G:"G","G#":"Ab",Ab:"Ab",A:"A","A#":"A#",Bb:"A#",B:"H",H:"H"};
+function pcKey(t){const m=/^([A-H])([#b]?)(m?)/.exec(String(t||"").replace(/♯/g,"#").replace(/♭/g,"b")); if(!m) return "";
+  let k=PC_KEY[m[1]+m[2]]||PC_KEY[m[1]]; if(!k) return "";
+  /* minor key: the charts are written in the relative major (Em is played as 6 in G) */
+  if(m[3]){const i=KEY12.indexOf(k); k=KEY12[(i+3)%12]} return k}
+function greenBadges(cv){
+  const W=cv.width,H=cv.height,S=2,gw=Math.ceil(W/S),gh=Math.ceil(H/S),d=cv.getContext("2d").getImageData(0,0,W,H).data,g=new Uint8Array(gw*gh);
+  for(let y=0;y<H;y+=S)for(let x=0;x<W;x+=S){const i=(y*W+x)*4,r=d[i],gg=d[i+1],b=d[i+2];if(gg>r+25&&gg>b+35&&gg>90&&gg<225)g[(y/S|0)*gw+(x/S|0)]=1}
+  const out=[],seen=new Uint8Array(gw*gh);
+  for(let k=0;k<g.length;k++){if(!g[k]||seen[k])continue;let x0=1e9,x1=-1,y0=1e9,y1=-1,n=0;const st=[k];seen[k]=1;
+    while(st.length){const c=st.pop(),cx=c%gw,cy=c/gw|0;n++;if(cx<x0)x0=cx;if(cx>x1)x1=cx;if(cy<y0)y0=cy;if(cy>y1)y1=cy;
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=gw||ny>=gh)continue;const q=ny*gw+nx;if(g[q]&&!seen[q]){seen[q]=1;st.push(q)}}}
+    const w=(x1-x0+1)*S,h=(y1-y0+1)*S;
+    if(h>=W*.025&&h<=W*.09&&w/h>=.75&&w/h<=2.4&&n*S*S>w*h*.45) out.push({x:x0*S,y:y0*S,w,h})}
+  return out;
+}
+function badgeCanvas(cv,b){
+  const sc=Math.max(1,72/b.h),pad=24,iw=Math.round(b.w*sc),ih=Math.round(b.h*sc),c=document.createElement("canvas");c.width=iw+pad*2;c.height=ih+pad*2;
+  const x=c.getContext("2d");x.drawImage(cv,b.x,b.y,b.w,b.h,pad,pad,iw,ih);
+  const im=x.getImageData(0,0,c.width,c.height),p=im.data,cx=pad+iw/2,cy=pad+ih/2,rx=iw/2*.86,ry=ih/2*.86;
+  /* white letter inside the green badge becomes black on white; the page around the badge is ignored */
+  for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++){const i=(y*c.width+xx)*4,r=p[i],g=p[i+1],bb=p[i+2];
+    const inside=((xx-cx)/rx)**2+((y-cy)/ry)**2<=1, lt=Math.min(r,g,bb)>170&&Math.max(r,g,bb)-Math.min(r,g,bb)<45;
+    const v=inside&&lt?0:255;p[i]=p[i+1]=p[i+2]=v;p[i+3]=255}
+  x.putImageData(im,0,0);return c;
+}
+function ocrWords(data,sc){
+  let ws=[];
+  if(data.words&&data.words.length) ws=data.words.map(w=>({t:w.text,x0:w.bbox.x0,y0:w.bbox.y0,x1:w.bbox.x1,y1:w.bbox.y1}));
+  else if(data.tsv) for(const ln of data.tsv.split("\n")){const f=ln.split("\t");if(f.length<12||f[0]!=="5"||!f[11].trim())continue;const l=+f[6],t=+f[7];ws.push({t:f[11],x0:l,y0:t,x1:l+ +f[8],y1:t+ +f[9]})}
+  return ws.map(w=>({t:w.t.trim(),x0:w.x0/sc,x1:w.x1/sc,y0:w.y0/sc,y1:w.y1/sc,cy:(w.y0+w.y1)/2/sc})).filter(w=>w.t);
+}
+function planItems(words,badges,W){
+  let times=words.filter(w=>/^\d{1,2}[:.]\d{2}[.,]?$/.test(w.t));
+  if(!times.length) return [];
+  /* the item times share one column; the phone's clock in the status bar does not */
+  const med=v=>{const q=[...v].sort((a,b)=>a-b);return q[q.length>>1]};
+  const mx=med(times.map(t=>t.x0)); times=times.filter(t=>Math.abs(t.x0-mx)<W*.05).sort((a,b)=>a.cy-b.cy);
+  let gap=Infinity;for(let i=1;i<times.length;i++){const d=times[i].cy-times[i-1].cy;if(d>W*.03&&d<gap)gap=d}
+  if(!isFinite(gap)) gap=W*.12;
+  const half=gap*.48, tr=med(times.map(t=>t.x1));
+  return times.map(t=>{
+    const bd=badges.filter(b=>Math.abs(b.y+b.h/2-t.cy)<half&&b.x>tr).sort((a,b)=>a.x-b.x)[0]||null;
+    const tw=words.filter(w=>w!==t&&Math.abs(w.cy-t.cy)<half&&w.x0>tr-2&&!(bd&&w.x1>bd.x-4&&w.x0<bd.x+bd.w+4)&&!times.includes(w))
+      .sort((a,b)=>Math.abs(a.cy-b.cy)<W*.012?a.x0-b.x0:a.cy-b.cy);
+    let title=tw.map(w=>w.t).join(" ").replace(/\s+([,.)])/g,"$1").replace(/\(\s+/g,"(").trim();
+    /* stray badge glyphs the color pass missed: a short non-word token at the end */
+    title=title.replace(/\s+[^\sA-Za-zÀ-ž]{1,3}$/,"").replace(/\s+\(?[@©®A-H]{1,2}\)?$/,m=>/^\s+[A-H]$/.test(m)?"":m).trim();
+    return {title,badge:bd};
+  }).filter(it=>it.title);
+}
+const tnorm=s=>norm(s).replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+function titleParts(t){const s=String(t||""),out=new Set([tnorm(s)]);const inner=[...s.matchAll(/\(([^)]*)\)?/g)].map(m=>m[1]);
+  out.add(tnorm(s.replace(/\([^)]*\)?/g," ")));inner.forEach(x=>out.add(tnorm(x)));s.split("/").forEach(x=>out.add(tnorm(x)));out.delete("");return [...out]}
+function simil(a,b){if(a===b)return 1;if(a.length>=5&&b.length>=5&&(a.includes(b)||b.includes(a)))return .9;
+  const bg=x=>{const m=new Map();for(let i=0;i<x.length-1;i++){const k=x.slice(i,i+2);m.set(k,(m.get(k)||0)+1)}return m};
+  const A=bg(a),B=bg(b);let n=0;for(const [k,v] of A)n+=Math.min(v,B.get(k)||0);return 2*n/Math.max(1,(a.length-1)+(b.length-1))}
+function matchSong(title){
+  const tp=titleParts(title);let best=null,bs=0;
+  for(const g of songs.values()){const gp=titleParts(g.title);for(const a of tp)for(const b of gp){const v=simil(a,b);if(v>bs){bs=v;best=g}}}
+  return bs>=.74?best:null;
+}
+let planWorker=null;
+async function scanPlanImage(file){
+  const url=URL.createObjectURL(file),img=new Image();img.src=url;await img.decode();
+  const col=document.createElement("canvas");col.width=img.width;col.height=img.height;col.getContext("2d").drawImage(img,0,0);URL.revokeObjectURL(url);
+  const sc=img.width<1400?2:1,gr=document.createElement("canvas");gr.width=img.width*sc;gr.height=img.height*sc;
+  const gx=gr.getContext("2d");gx.filter="grayscale(1) contrast(1.15)";gx.drawImage(img,0,0,gr.width,gr.height);
+  const w=planWorker;
+  await w.setParameters({tessedit_pageseg_mode:"11",tessedit_char_whitelist:""});
+  const {data}=await w.recognize(gr);
+  const badges=greenBadges(col), items=planItems(ocrWords(data,sc),badges,img.width);
+  await w.setParameters({tessedit_pageseg_mode:"7",tessedit_char_whitelist:"ABCDEFGHm#b"});
+  for(const it of items){ if(!it.badge) continue;
+    const r=await w.recognize(badgeCanvas(col,it.badge)); it.key=pcKey((r.data.text||"").replace(/\s/g,"")) }
+  return items;
+}
+async function planFromImages(files,setId){
+  ui.planMsg={id:setId,msg:"Dallista felismerése a képről… Az első alkalommal ez fél percig is eltarthat."};render();
+  try{
+    await loadTess(); planWorker=await Tesseract.createWorker("eng+hun");
+    let items=[];for(const f of files) items=items.concat(await scanPlanImage(f));
+    await planWorker.terminate();planWorker=null;
+    const set=setlists.get(setId); if(!set) return;
+    const ids=(set.songIds||[]).filter(x=>songs.has(x)), keys={...(set.keys||{})}, added=[], made=[];
+    for(const it of items){
+      let g=matchSong(it.title);
+      if(!g){ if(!it.key) continue; /* no key badge and no known song: a sermon, announcements, a heading */
+        const nid=newId("s"); put("songs",nid,{title:it.title,artist:"",key:it.key,bpm:"",notes:"",body:"",updatedAt:Date.now()}); g=songs.get(nid); made.push(it.title) }
+      if(!ids.includes(g.id)){ids.push(g.id);added.push(g.title)}
+      if(it.key){ if(it.key===g.key) delete keys[g.id]; else keys[g.id]=it.key }
+    }
+    put("setlists",setId,{...set,songIds:ids,keys,updatedAt:Date.now()});
+    ui.planMsg=added.length?{id:setId,msg:added.length+" dal került a setlistbe"+(made.length?", ebből "+made.length+" új, még kotta nélkül ("+made.join(", ")+")":"")+". Nézd át a sorrendet és a hangnemeket."}
+      :{id:setId,msg:"Nem találtam dalt a képen. Planning Center „Order” nézetéről készült képernyőkép kell.",err:1};
+    render(); setTimeout(fillCovers,1500);
+  }catch(e){try{planWorker&&planWorker.terminate()}catch(_){}planWorker=null;
+    ui.planMsg={id:setId,msg:navigator.onLine?"Nem sikerült feldolgozni a képet. Próbáld újra.":"A képfelismeréshez internet kell.",err:1};render()}
+}
+document.addEventListener("change",e=>{if(e.target.id==="s-img"&&e.target.files.length&&ui.view==="set"){const f=[...e.target.files];e.target.value="";planFromImages(f,ui.id)}});
 
 /* ---------- setlist gestures: swipe right to remove, drag the grip (or long-press) to reorder ---------- */
 let gest=null, suppressClick=false;
