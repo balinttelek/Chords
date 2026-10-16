@@ -204,6 +204,8 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .sbtn.skey{background:var(--sacc);color:#04161b;min-width:48px;font-size:16px}
 .sbar{position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30;-webkit-transform:translateZ(0);transform:translateZ(0);pointer-events:none}
 .st-zone{position:absolute;top:0;bottom:0;width:50%;z-index:2}
+.stage .empty-state{background:none;color:var(--smuted);box-shadow:none}
+.st-add{position:absolute;left:50%;top:calc(50% + 44px);transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:8px;background:var(--sbtn);color:var(--sfg);font-weight:700;font-size:16px;padding:12px 20px;border-radius:24px;white-space:nowrap}
 .st-area{touch-action:none}
 .st-card{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-inline:8px;background:var(--sbg);will-change:transform;transform-origin:50% 90%}
 .st-card{z-index:1}
@@ -843,7 +845,8 @@ function vStage(){
   return '<div class="stage'+(prefs.light?" light":"")+'" id="stage"><div class="st-top"><button class="sbtn" data-act="exitstage">Kész</button>'+
   '<div class="info"><b>'+(st.list.length>1?(st.i+1)+(jb?"–"+(st.i+2):"")+"/"+st.list.length+"  ":"")+esc(s.title)+(jb?" + "+esc(s2.title):"")+'</b><span>'+esc(sub)+'</span></div>'+
   '<button class="sbtn skey" data-act="stagekey" aria-label="Hangnem váltása">'+esc(jb?(shownKey||"–")+" · "+(shownKey2||"–"):(shownKey||"Key"))+'</button><button class="sbtn" data-act="letters" aria-label="Számok vagy betűk">'+(prefs.letters?"123":"ABC")+'</button><button class="sbtn" data-act="light" aria-label="Világos vagy sötét">'+(prefs.light?"☾":"☀")+'</button></div>'+
-  '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+pageChart(st.i,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div></div>'+
+  '<div class="st-area" id="stArea"><div class="st-card'+enter+'" id="stCard">'+pageChart(st.i,"stChart")+'</div>'+backCard(-1)+backCard(1)+'<div class="st-zone l" data-act="prev"></div><div class="st-zone r" data-act="next"></div>'+
+  (!String(s.body||"").trim()&&!jb?'<button class="st-add" data-act="stageedit" data-id="'+id+'">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Kotta hozzáadása</button>':'')+'</div>'+
   '<div class="st-bot"><button class="sbtn slib" data-act="stagelib">'+ico.search+' Dalok</button>'+(next?peekHTML(st.list[ni],nextKey):'<span class="nx">'+(st.list.length>1?"Vége":"")+'</span>')+'</div>'+(ui.stageKey?vStageKey(kid,ks,kOf(kid),jb?[id,jb]:null):"")+(ui.stageLib?vStageLib():"")+'</div>';
 }
 /* the next song's key and its first line, so a segue needs no page turn */
@@ -1014,6 +1017,8 @@ document.addEventListener("click",e=>{
       break;
     case "opensong": ui.homeY=window.scrollY; push(); go("song",{id}); break;
     case "openset": ui.homeY=window.scrollY; push(); go("set",{id}); break;
+    case "stageedit": {const s=songs.get(id); if(!s)break; push(); ui.editFromStage=true;
+      go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
     case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
     case "canceledit": history.back(); break;
     case "shareverse": {const [ref,txt]=verseToday(), t=txt+"\n("+ref+", Károli)";
@@ -1119,6 +1124,8 @@ function backAction(){
   if(ui.coverPick){ui.coverPick=false;render();return}
   if(ui.view==="stage"&&!stageExit){push();return}
   if(ui.view==="stage"){stageExit=false;const f=ui.stage?ui.stage.from:{view:"home"};releaseScreen();ui.stage=null;go(f.view,{id:f.id});return}
+  /* a chart added from the stage goes straight back to the same song on stage */
+  if(ui.view==="edit"&&ui.editFromStage&&ui.stage){ui.editFromStage=false;ui.ocr=null;ui.draft=null;ui.view="stage";render();settleStage();return}
   if(ui.view==="edit"){ui.ocr=null;const id=ui.draft&&ui.draft.id;if(id&&songs.has(id))go("song",{id});else goHome();return}
   if(ui.view!=="home") goHome();
 }
