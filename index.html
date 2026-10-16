@@ -747,7 +747,7 @@ function vSong(){
 function vEdit(){
   const d=ui.draft;
   return '<div class="wrap"><div class="top"><button class="link" data-act="canceledit">Mégse</button><button class="link" data-act="saveedit">Mentés</button></div>'+
-  (d.id?'':'<div class="imp"><label class="impbtn" for="f-img">'+ico.image+' Képernyőképből</label><input id="f-img" type="file" accept="image/*" hidden><button class="impbtn" data-act="paste">'+ico.paste+' Beillesztés</button></div>'+
+  (d.id&&String(d.body||"").trim()?'':'<div class="imp"><label class="impbtn" for="f-img">'+ico.image+' Képernyőképből</label><input id="f-img" type="file" accept="image/*" hidden><button class="impbtn" data-act="paste">'+ico.paste+' Beillesztés</button></div>'+
    (ui.ocr?'<div class="ocrmsg'+(ui.ocr.err?" bad":"")+'">'+esc(ui.ocr.msg)+'</div>':''))+
   '<p class="eyebrow">'+(d.id?'Dal szerkesztése':'Új dal')+'</p><input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
   '<div class="card" style="margin-top:12px"><button class="field covfield" data-act="coverpick">'+coverEl({title:d.title,cover:d.cover})+'<span class="cvl">Borító</span><span class="cvv">'+(d.cover?"Módosítás":"Keresés")+'</span>'+ico.chev+'</button><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
@@ -1240,7 +1240,10 @@ function cleanOcrBody(body){
 }
 function applyImport(text,msg,ocr){
   const r=importText(text); if(ocr&&r.body) r.body=cleanOcrBody(r.body); if(!r.title&&!r.body){ui.ocr={msg:"Nem találtam szöveget a képen.",err:1};render();return}
-  readDraft(); Object.assign(ui.draft,{title:r.title||ui.draft.title,key:r.key||ui.draft.key,body:r.body||ui.draft.body});
+  readDraft();
+  /* a song that already exists (e.g. added from a setlist screenshot) keeps its title and key; only the chart is filled in */
+  const own=ui.draft.id&&songs.has(ui.draft.id);
+  Object.assign(ui.draft,{title:own&&ui.draft.title?ui.draft.title:(r.title||ui.draft.title),key:own&&ui.draft.key?ui.draft.key:(r.key||ui.draft.key),body:r.body||ui.draft.body});
   ui.ocr={msg}; render();
 }
 let tessP=null;
