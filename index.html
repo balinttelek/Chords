@@ -1329,7 +1329,8 @@ function simil(a,b){if(a===b)return 1;if(a.length>=5&&b.length>=5&&(a.includes(b
   const bg=x=>{const m=new Map();for(let i=0;i<x.length-1;i++){const k=x.slice(i,i+2);m.set(k,(m.get(k)||0)+1)}return m};
   const A=bg(a),B=bg(b);let n=0;for(const [k,v] of A)n+=Math.min(v,B.get(k)||0);return 2*n/Math.max(1,(a.length-1)+(b.length-1))}
 function matchSong(title){
-  const tp=titleParts(title);let best=null,bs=0;
+  /* "Here Again - Elevation Worship": the title may come with the artist, so each side is tried too */
+  const tp=[...new Set(titleParts(title).concat(...String(title).split(/\s+[-–—|]\s+|\s*[|•]\s*/).map(titleParts)))];let best=null,bs=0;
   for(const g of songs.values()){const gp=titleParts(g.title);for(const a of tp)for(const b of gp){const v=simil(a,b);if(v>bs){bs=v;best=g}}}
   return bs>=.74?best:null;
 }
@@ -1342,11 +1343,39 @@ async function scanPlanImage(file){
   const w=planWorker;
   await w.setParameters({tessedit_pageseg_mode:"11",tessedit_char_whitelist:""});
   const {data}=await w.recognize(gr);
-  const badges=greenBadges(col), items=planItems(ocrWords(data,sc),badges,img.width);
-  await w.setParameters({tessedit_pageseg_mode:"7",tessedit_char_whitelist:"ABCDEFGHm#b"});
-  for(const it of items){ if(!it.badge) continue;
-    const r=await w.recognize(badgeCanvas(col,it.badge)); it.key=pcKey((r.data.text||"").replace(/\s/g,"")) }
-  return items;
+  const badges=greenBadges(col); let items=planItems(ocrWords(data,sc),badges,img.width);
+  if(items.length&&(items.some(it=>it.badge)||items.length>=3)){
+    /* a Planning Center-like order: rows anchored by times, keys in colored badges */
+    await w.setParameters({tessedit_pageseg_mode:"7",tessedit_char_whitelist:"ABCDEFGHm#b"});
+    for(const it of items){ if(!it.badge){const g=lineItem(it.title,false);if(g){it.title=g.title;it.key=g.key}continue}
+      const r=await w.recognize(badgeCanvas(col,it.badge)); it.key=pcKey((r.data.text||"").replace(/\s/g,"")) }
+    return items;
+  }
+  /* anything else (a chat message, a note, another app): read it line by line */
+  await w.setParameters({tessedit_pageseg_mode:"4",tessedit_char_whitelist:""});
+  const r=await w.recognize(gr);
+  return textItems(r.data.text||"");
+}
+/* one line of a song list: "2. Here Again - C", "Trust In God (A)", "G – Reckless Love", "11:00 Forrás Em" */
+const KEYTOK="([A-H](?:#|b|is|es)?m?)";
+function lineItem(line,hu){
+  let t=String(line).replace(/[“”"’]/g,"").trim(), key="";
+  for(let k=0;k<3;k++) t=t.replace(/^\s*(\d{1,2}[:.]\d{2}[.,]?|\d{1,2}\s*[.)\]]|[-•*–·>]+)\s*/,"");
+  let m=new RegExp("^(.*?\\S)\\s*(?:[-–—:,/|]\\s*|\\(|\\[|\\s)(?:key\\s*:?\\s*|hangnem\\s*:?\\s*)?\\(?"+KEYTOK+"\\)?\\]?\\.?$","i").exec(t);
+  if(m&&/^[A-H]/.test(m[2])){t=m[1];key=m[2]}
+  else if((m=new RegExp("^\\(?"+KEYTOK+"\\)?\\s*[-–—:]\\s*(.+)$").exec(t))){key=m[1];t=m[2]}
+  t=t.replace(/\s*[-–—:|,]+\s*$/,"").trim();
+  /* "Új dal: Mosolyfelhő" keeps only the title */
+  t=t.replace(/^[^:]{1,25}:\s+(?=\S)/,"");
+  if(!/[A-Za-zÀ-ž]{2}/.test(t)) return null;
+  return {title:t,key:key?keyFrom(key,hu):""};
+}
+/* B means B flat in Hungarian (A# here) but B natural (H) in English; a list that uses H is Hungarian */
+function keyFrom(k,hu){k=k.replace(/is$/,"#").replace(/es$/,"b");if(hu&&/^B(?!b)/.test(k))k="A#"+k.slice(1);return pcKey(k)}
+function textItems(text){
+  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+  const hu=lines.some(l=>new RegExp("(?:^|[\\s(:–-])H(?:m)?\\)?\\s*$").test(l));
+  return lines.map(l=>lineItem(l,hu)).filter(Boolean).filter(it=>it.title.length<=70);
 }
 async function planFromImages(files,setId){
   ui.planMsg={id:setId,msg:"Dallista felismerése a képről… Az első alkalommal ez fél percig is eltarthat."};render();
@@ -1365,7 +1394,7 @@ async function planFromImages(files,setId){
     }
     put("setlists",setId,{...set,songIds:ids,keys,updatedAt:Date.now()});
     ui.planMsg=added.length?{id:setId,msg:added.length+" dal került a setlistbe"+(made.length?", ebből "+made.length+" új, még kotta nélkül ("+made.join(", ")+")":"")+". Nézd át a sorrendet és a hangnemeket."}
-      :{id:setId,msg:"Nem találtam dalt a képen. Planning Center „Order” nézetéről készült képernyőkép kell.",err:1};
+      :{id:setId,msg:"Nem találtam dalt a képen. Olyan kép kell, amin a dalok címe soronként olvasható, például a Planning Center „Order” nézete vagy egy üzenet a dallistával.",err:1};
     render(); setTimeout(fillCovers,1500);
   }catch(e){try{planWorker&&planWorker.terminate()}catch(_){}planWorker=null;
     ui.planMsg={id:setId,msg:navigator.onLine?"Nem sikerült feldolgozni a képet. Próbáld újra.":"A képfelismeréshez internet kell.",err:1};render()}

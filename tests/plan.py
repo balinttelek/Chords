@@ -49,6 +49,28 @@ with sync_playwright() as p:
         check(bool(hit), "found %s" % t)
         if hit: check(keys[hit[0]] == k, "%s key %s (got %s)" % (t, k, keys[hit[0]]))
     check(not any(n(x) in ("title", "hirdetesek", "predika") for x in titles), "non-songs skipped")
+    # a chat message with a song list (not Planning Center)
+    shot = os.path.dirname(__file__) + "/shots/chat-list.png"
+    pg2 = b.new_page(viewport={"width": 390, "height": 600}, device_scale_factor=3)
+    pg2.set_content("""<body style="margin:0;background:#e5ddd5;font:17px -apple-system,Helvetica,Arial">
+    <div style="margin:60px 14px;background:#fff;border-radius:14px;padding:12px 14px;line-height:1.45;width:300px">
+    Vasárnapi dalok:<br>1. Here Again - C<br>2. Trust In God (A)<br>G – Reckless Love<br>5) Goodness of God<br>- Who you say I am – Bb<br>Új dal ma: Mosolyfelhő – D<br>Köszi mindenkinek!</div></body>""")
+    pg2.screenshot(path=shot); pg2.close()
+    page.locator('[data-act="home"]').first.tap(); page.wait_for_timeout(400)
+    page.locator('.addcenter').tap(); page.wait_for_timeout(600)
+    page.set_input_files("#s-img", [shot])
+    page.wait_for_function("document.querySelector('.ocrmsg')&&!/felismerése/.test(document.querySelector('.ocrmsg').textContent)", timeout=120000)
+    page.wait_for_timeout(500); print("MSG2:", page.inner_text(".ocrmsg"))
+    st = json.loads(page.evaluate("localStorage.getItem('szk-store-v2')"))
+    sid = page.evaluate("ui=undefined") if False else None
+    sets = sorted(st["setlists"].values(), key=lambda r: r["data"].get("updatedAt", 0))
+    s2 = sets[-1]["data"]
+    t2 = [(st["songs"][i]["data"]["title"], s2.get("keys", {}).get(i) or st["songs"][i]["data"]["key"]) for i in s2["songIds"]]
+    print("CHAT:", t2)
+    want2 = [("Here again", "C"), ("Trust in God", "A"), ("Reckless love", "G"), ("Goodness of God", None), ("Who you say i am", "A#"), ("Mosolyfelhő", "D")]
+    for (t, k), got in zip(want2, t2 + [None] * 9):
+        check(got and n(got[0]).startswith(n(t)[:7]) and (k is None or got[1] == k), "chat list: %s %s (got %s)" % (t, k, got))
+    check(len(t2) == len(want2), "chat list: only the songs (%d)" % len(t2))
     check(not errors, "no console errors %s" % errors)
     b.close()
 srv.shutdown()
