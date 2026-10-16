@@ -163,6 +163,9 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .confirm{display:flex;gap:12px;align-items:center;padding:12px 16px;flex-wrap:wrap}
 .confirm .yes{background:var(--danger);color:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
 .banner{background:var(--sunk);color:var(--muted);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:14px;line-height:1.4}
+.altin{display:block;width:100%;border:0;background:none;outline:none;font:500 17px var(--body);color:var(--muted);margin:4px 0 16px;padding:0}
+.alt{color:var(--muted);font-size:17px;font-weight:500;margin:0 0 18px}
+.h1.song+.alt{margin-top:-14px}
 .planbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;color:var(--accent);font-weight:600;font-size:15px;padding:8px 14px;width:max-content}
 .addrow{display:flex;align-items:center;gap:10px;color:var(--accent);font-weight:600;padding:14px;justify-content:center;border:1.5px dashed var(--line);border-radius:var(--r);width:100%}
 
@@ -725,7 +728,7 @@ function setsList(){
     return '<button class="row" data-act="openset" data-id="'+s.id+'"><span class="dstack"><b>'+(ok?d.getDate():"·")+'</b><span>'+(ok?MON[d.getMonth()]:"")+'</span></span><div class="main"><div class="t1">'+esc(s.name||"Névtelen setlist")+'</div><div class="t2">'+n+' dal</div></div><span class="chev">'+ico.chev+'</span></button>'}).join("")+'</div>';
 }
 function songsList(){
-  const q=norm(ui.q), arr=sortedSongs().filter(s=>!q||norm(s.title+" "+s.artist).includes(q));
+  const q=norm(ui.q), arr=sortedSongs().filter(s=>!q||norm(s.title+" "+(s.alt||"")+" "+s.artist).includes(q));
   if(!songs.size) return emptyState("songs");
   if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
   /* while searching there are no letter groups, so the results get one card of their own */
@@ -741,7 +744,7 @@ function vSong(){
   const s=songs.get(ui.id); if(!s){ui.view="home";return vHome()}
   return '<div class="wrap"><div class="top"><button class="link" data-act="back">'+ico.back+' Vissza</button><button class="link" data-act="edit">Szerkesztés</button></div>'+
   '<p class="eyebrow">'+[s.key?'<b>'+esc(s.key)+'</b>':'nincs hangnem',s.bpm?esc(s.bpm)+' BPM':'',s.artist?esc(s.artist):''].filter(Boolean).join(' · ')+'</p>'+
-  '<h1 class="h1 song">'+esc(s.title||"Névtelen dal")+'</h1>'+
+  '<h1 class="h1 song">'+esc(s.title||"Névtelen dal")+'</h1>'+(s.alt?'<p class="alt">'+esc(s.alt)+'</p>':'')+
   (s.notes?'<div class="note">'+esc(s.notes)+'</div>':"")+
   '<div class="reading">'+chartHTML(s.body,s.key,false)+'</div></div>'+
   '<button class="cta" data-act="playsong">'+ico.play+' Színpadi nézet</button>';
@@ -752,6 +755,7 @@ function vEdit(){
   (d.id&&String(d.body||"").trim()?'':'<div class="imp"><label class="impbtn" for="f-img">'+ico.image+' Képernyőképből</label><input id="f-img" type="file" accept="image/*" hidden><button class="impbtn" data-act="paste">'+ico.paste+' Beillesztés</button></div>'+
    (ui.ocr?'<div class="ocrmsg'+(ui.ocr.err?" bad":"")+'">'+esc(ui.ocr.msg)+'</div>':''))+
   '<p class="eyebrow">'+(d.id?'Dal szerkesztése':'Új dal')+'</p><input class="titlein" id="f-title" placeholder="Dal címe" value="'+esc(d.title)+'" autocomplete="off">'+
+  '<input class="altin" id="f-alt" placeholder="Másik cím, pl. magyarul vagy angolul" value="'+esc(d.alt||"")+'" autocomplete="off">'+
   '<div class="card" style="margin-top:12px"><button class="field covfield" data-act="coverpick">'+coverEl({title:d.title,cover:d.cover})+'<span class="cvl">Borító</span><span class="cvv">'+(d.cover?"Módosítás":"Keresés")+'</span>'+ico.chev+'</button><div class="field"><label for="f-artist">Előadó</label><input id="f-artist" value="'+esc(d.artist)+'" placeholder="nem kötelező" autocomplete="off"></div>'+
   '<div class="field"><label for="f-key">Hangnem</label><select id="f-key"><option value="">nincs</option>'+(d.key&&!KEYS.includes(d.key)?[d.key]:[]).concat(KEYS).map(k=>'<option'+(k===d.key?" selected":"")+'>'+esc(k)+'</option>').join("")+'</select></div>'+
   '<div class="field"><label for="f-bpm">Tempó</label><input id="f-bpm" inputmode="numeric" value="'+esc(d.bpm)+'" placeholder="BPM"></div>'+
@@ -826,7 +830,7 @@ function vPicker(s){
   '<label class="search">'+ico.search+'<input id="pq" type="search" placeholder="Keresés" value="'+esc(ui.pq)+'" autocomplete="off"></label></div><div class="inner"><div id="pickList">'+pickList(s)+'</div></div></div>';
 }
 function pickList(s){
-  const q=norm(ui.pq), inSet=new Set(s.songIds||[]), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+g.artist).includes(q));
+  const q=norm(ui.pq), inSet=new Set(s.songIds||[]), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+(g.alt||"")+" "+g.artist).includes(q));
   if(!arr.length) return '<div class="empty-state">'+(songs.size?"Nincs találat.":"Előbb vegyél fel dalokat a Dalok fülön.")+'</div>';
   return '<div class="glist">'+arr.map(g=>'<button class="row" data-act="pick" data-id="'+g.id+'">'+coverEl(g,"sm")+'<div class="main"><div class="t1">'+esc(g.title)+'</div></div>'+chip(g)+'<span class="check'+(inSet.has(g.id)?" on":"")+'">'+(inSet.has(g.id)?ico.ok:"")+'</span></button>').join("")+'</div>';
 }
@@ -862,7 +866,7 @@ function vStageLib(){
   '<label class="search">'+ico.search+'<input id="lq" type="search" placeholder="Melyik dal jön?" value="'+esc(ui.lq||"")+'" autocomplete="off"></label></div><div class="inner"><div id="libList">'+libList()+'</div></div></div>';
 }
 function libList(){
-  const st=ui.stage, q=norm(ui.lq||""), inList=new Set(st.list), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+g.artist).includes(q));
+  const st=ui.stage, q=norm(ui.lq||""), inList=new Set(st.list), arr=sortedSongs().filter(g=>!q||norm(g.title+" "+(g.alt||"")+" "+g.artist).includes(q));
   if(!arr.length) return '<div class="empty-state">Nincs találat.</div>';
   return '<div class="glist">'+arr.map(g=>'<button class="row" data-act="libpick" data-id="'+g.id+'">'+coverEl(g,"sm")+'<div class="main"><div class="t1">'+esc(g.title)+'</div>'+(inList.has(g.id)?'<div class="t2">Már a listában van, odaugrik</div>':'')+'</div>'+chip(g)+'</button>').join("")+'</div>';
 }
@@ -1001,7 +1005,7 @@ function watchArea(){
   if(!areaRO) areaRO=new ResizeObserver(()=>{const el=$("#stArea");if(!el)return;const s=el.clientWidth+"x"+el.clientHeight;if(s!==areaSize){areaSize=s;fit()}});
   areaRO.disconnect(); areaSize=a.clientWidth+"x"+a.clientHeight; areaRO.observe(a);
 }
-function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
+function readDraft(){const g=id=>$(id)?.value??"";Object.assign(ui.draft,{title:g("#f-title").trim(),alt:g("#f-alt").trim(),artist:g("#f-artist").trim(),key:g("#f-key"),bpm:g("#f-bpm").replace(/\D/g,""),notes:g("#f-notes").trim(),body:g("#f-body")})}
 
 document.addEventListener("click",e=>{
   if(suppressClick){suppressClick=false;e.preventDefault();return}
@@ -1018,8 +1022,8 @@ document.addEventListener("click",e=>{
     case "opensong": ui.homeY=window.scrollY; push(); go("song",{id}); break;
     case "openset": ui.homeY=window.scrollY; push(); go("set",{id}); break;
     case "stageedit": {const s=songs.get(id); if(!s)break; push(); ui.editFromStage=true;
-      go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
-    case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
+      go("edit",{draft:{id:s.id,title:s.title||"",alt:s.alt||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
+    case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",alt:s.alt||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
     case "canceledit": history.back(); break;
     case "shareverse": {const [ref,txt]=verseToday(), t=txt+"\n("+ref+", Károli)";
       if(navigator.share) navigator.share({text:t}).catch(()=>{}); else if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast("Ige kimásolva"),()=>{})} break;
@@ -1027,7 +1031,7 @@ document.addEventListener("click",e=>{
     case "coverset": {const i=+b.dataset.i, x=i>=0&&Array.isArray(ui.cres)?ui.cres[i]:null; readDraft();
       Object.assign(ui.draft,{cover:x?x.img:"",coverManual:true}); if(x) ui.draft.artist=x.a; history.back()} break;
     case "paste": (async()=>{try{const t=await navigator.clipboard.readText();if(!t.trim())throw 0;applyImport(t,"Beillesztve. Nézd át, és ha jó, nyomd meg a Mentést.")}catch(_){ui.ocr={msg:"Nem sikerült beilleszteni. Másold ki a jegyzet szövegét, és próbáld újra.",err:1};render()}})(); break;
-    case "saveedit": {ui.ocr=null;readDraft();const d=ui.draft,isNew=!d.id,sid=d.id||newId("s");const old=(d.id&&songs.get(d.id))||{};const rec={...old,title:d.title||"Névtelen dal",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()};delete rec.id;
+    case "saveedit": {ui.ocr=null;readDraft();const d=ui.draft,isNew=!d.id,sid=d.id||newId("s");const old=(d.id&&songs.get(d.id))||{};const rec={...old,title:d.title||"Névtelen dal",alt:d.alt||"",artist:d.artist,key:d.key,bpm:d.bpm,notes:d.notes,body:d.body,updatedAt:Date.now()};delete rec.id;
       if(d.coverManual){rec.cover=d.cover||"";rec.coverChecked=true;rec.coverQ="manual"}
       put("songs",sid,rec);
       if(isNew){go("song",{id:sid})} else history.back()} break;
@@ -1341,7 +1345,7 @@ function simil(a,b){if(a===b)return 1;if(a.length>=5&&b.length>=5&&(a.includes(b
 function matchSong(title){
   /* "Here Again - Elevation Worship": the title may come with the artist, so each side is tried too */
   const tp=[...new Set(titleParts(title).concat(...String(title).split(/\s+[-–—|]\s+|\s*[|•]\s*/).map(titleParts)))];let best=null,bs=0;
-  for(const g of songs.values()){const gp=titleParts(g.title);for(const a of tp)for(const b of gp){const v=simil(a,b);if(v>bs){bs=v;best=g}}}
+  for(const g of songs.values()){const gp=titleParts(g.title).concat(g.alt?titleParts(g.alt):[]);for(const a of tp)for(const b of gp){const v=simil(a,b);if(v>bs){bs=v;best=g}}}
   return bs>=.74?best:null;
 }
 let planWorker=null;
