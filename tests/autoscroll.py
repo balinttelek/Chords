@@ -23,7 +23,7 @@ with sync_playwright() as p:
     s = page.context.new_cdp_session(page)
     x, y = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
     T = lambda t, pts: s.send("Input.dispatchTouchEvent", {"type": t, "touchPoints": pts})
-    T("touchStart", [{"x": x, "y": y}])
+    T("touchStart", [{"x": x, "y": y}]); page.wait_for_timeout(320)
     steps = 20
     for i in range(1, steps + 1):
         page.wait_for_timeout(16); T("touchMove", [{"x": x, "y": y + (60 - y) * i / steps}])
@@ -39,7 +39,7 @@ with sync_playwright() as p:
     page.evaluate("window.scrollTo(0,0)"); page.wait_for_timeout(300)
     top = page.locator(".srow").first; tt = top.locator(".t1").inner_text(); g = top.locator(".grip").bounding_box()
     x, y = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
-    T("touchStart", [{"x": x, "y": y}])
+    T("touchStart", [{"x": x, "y": y}]); page.wait_for_timeout(320)
     for i in range(1, 21):
         page.wait_for_timeout(16); T("touchMove", [{"x": x, "y": y + (790 - y) * i / 20}])
     for _ in range(150):
@@ -47,6 +47,15 @@ with sync_playwright() as p:
     T("touchEnd", []); page.wait_for_timeout(2500)
     lastt = page.locator(".srow").last.locator(".t1").inner_text()
     check(lastt == tt, "first song dragged to the bottom in one move (%s -> last: %s)" % (tt, lastt))
+    # a quick scroll that happens to start on a grip must not move songs
+    order0 = page.locator(".srow .t1").all_inner_texts()
+    page.evaluate("window.scrollTo(0,0)"); page.wait_for_timeout(200)
+    g = page.locator(".srow .grip").nth(3).bounding_box(); x, y = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
+    T("touchStart", [{"x": x, "y": y}])
+    for i in range(1, 12):
+        page.wait_for_timeout(16); T("touchMove", [{"x": x, "y": y - i * 25}])
+    T("touchEnd", []); page.wait_for_timeout(1500)
+    check(page.locator(".srow .t1").all_inner_texts() == order0 and page.locator(".srow.dragging").count() == 0, "a quick swipe from a grip scrolls instead of moving a song")
     check(not errors, "no console errors %s" % errors)
     b.close()
 srv.shutdown()

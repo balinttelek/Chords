@@ -276,7 +276,7 @@ html{background:var(--bg)}
 .srow.swiping .sbg{opacity:.7}.srow.armed .sbg{opacity:1}
 .sfront{position:relative;display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:var(--r);padding:10px 4px 10px 10px;min-height:60px;box-sizing:border-box;cursor:pointer}
 .sfront .main{flex:1;min-width:0}
-.grip{width:40px;height:44px;display:grid;place-items:center;color:var(--muted);touch-action:none;flex:none;cursor:grab}
+.grip{width:40px;height:44px;display:grid;place-items:center;color:var(--muted);touch-action:pan-y;flex:none;cursor:grab}
 .shint{color:var(--muted);font-size:13px;text-align:center;margin:12px 8px 0;line-height:1.4}
 /* setlist as one grouped card: hairline rows, quiet numbers, the key chip tells set-only keys (filled) from the song's own (outlined) */
 .list.grouped{grid-template-columns:minmax(0,1fr);gap:0;background:var(--surface);border-radius:16px}
@@ -1449,8 +1449,9 @@ document.addEventListener("pointerdown",e=>{
   if(ui.view!=="set"||ui.picker||ui.keyFor||e.clientX<24||(e.button&&e.button>0)) return;
   const row=e.target.closest(".srow"); if(!row) return;
   gest={row,front:row.querySelector(".sfront"),i:+row.dataset.i,x0:e.clientX,y0:e.clientY,mode:null,id:e.pointerId,dx:0};
-  if(e.target.closest(".grip")){startDrag();e.preventDefault();return}
-  gest.lp=setTimeout(()=>{if(gest&&!gest.mode)startDrag()},450);
+  /* the grip sits where a thumb scrolls, so even there a row lifts only after the finger rests on it for a moment;
+     moving first means scrolling, and the hold is cancelled */
+  gest.lp=setTimeout(()=>{if(gest&&!gest.mode)startDrag()},e.target.closest(".grip")?220:500);
 });
 document.addEventListener("pointermove",e=>{
   const g=gest; if(!g||e.pointerId!==g.id) return;

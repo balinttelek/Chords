@@ -21,7 +21,7 @@ with sync_playwright() as p:
     g = page.locator(".srow .grip").nth(LONG).bounding_box()
     s = page.context.new_cdp_session(page)
     x, y = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
-    s.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
+    s.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]}); page.wait_for_timeout(320)
     for i in range(1, 8):
         page.wait_for_timeout(30); s.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x, "y": y + i * 6}]})
     page.wait_for_timeout(100)
