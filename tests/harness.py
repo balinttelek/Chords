@@ -26,7 +26,7 @@ def make_db():
     for s in seed:
         sid = s.pop("id"); songs[sid] = {"id": sid, "data": s, "updated_at": now(), "deleted": False}
     ids = list(songs)
-    setlists = {"l1": {"id": "l1", "data": {"name": "Vasárnap, október 11.", "date": "2026-10-11", "songIds": [ids[0], "echoes", ids[2]], "keys": {"echoes": "D"}, "updatedAt": 1}, "updated_at": now(), "deleted": False}}
+    setlists = {"l1": {"id": "l1", "data": {"name": "Vasárnap, október 11.", "date": (datetime.date.today() + datetime.timedelta(days=3)).isoformat(), "songIds": [ids[0], "echoes", ids[2]], "keys": {"echoes": "D"}, "updatedAt": 1}, "updated_at": now(), "deleted": False}}
     return {"songs": songs, "setlists": setlists}
 
 def itunes_payload(term):
