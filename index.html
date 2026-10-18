@@ -166,6 +166,10 @@ textarea.chartin{display:block;width:100%;min-height:260px;border:0;background:v
 .altin{display:block;width:100%;border:0;background:none;outline:none;font:500 17px var(--body);color:var(--muted);margin:4px 0 16px;padding:0}
 .alt{color:var(--muted);font-size:17px;font-weight:500;margin:0 0 18px}
 .h1.song+.alt{margin-top:-14px}
+.archrow{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:14px 16px;border-radius:var(--r);background:var(--surface);color:var(--ink);font-weight:600;font-size:16px;text-align:left}
+.archrow .an{flex:1;text-align:right;color:var(--muted);font-weight:500;font-size:14px}
+.archrow svg{color:var(--muted)}
+.archbtn{display:block;width:100%;margin-top:28px;padding:14px 16px;border-radius:var(--r);background:var(--surface);color:var(--accent);font-weight:600;font-size:16px;text-align:left}
 .planbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;color:var(--accent);font-weight:600;font-size:15px;padding:8px 14px;width:max-content}
 .addrow{display:flex;align-items:center;gap:10px;color:var(--accent);font-weight:600;padding:14px;justify-content:center;border:1.5px dashed var(--line);border-radius:var(--r);width:100%}
 
@@ -668,7 +672,7 @@ const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const setTile=(set,g)=>{const k=set.keys&&set.keys[g.id];return '<button class="kchip kbtn'+(k?" over":"")+((k||g.key)?"":" empty")+'" data-act="keyfor" data-id="'+g.id+'" aria-label="Hangnem módosítása">'+esc(k||g.key||"–")+'</button>'};
 const chip=s=>'<span class="kchip'+(s.key?"":" empty")+'">'+esc(s.key||"–")+'</span>';
 const tile=(s,cls)=>'<span class="tile'+(s.key?"":" empty")+(cls?" "+cls:"")+'">'+esc(s.key||"–")+'</span>';
-const go=(view,extra)=>{noAct();ui.planMsg=null;Object.assign(ui,{view,confirmDel:false,editSet:false,picker:false,coverPick:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
+const go=(view,extra)=>{noAct();ui.planMsg=null;Object.assign(ui,{view,fromArch:false,confirmDel:false,editSet:false,picker:false,coverPick:false,keyFor:null,stageKey:false,stageLib:false,ocr:null},extra||{});render();window.scrollTo(0,0)};
 
 /* ---------- views ---------- */
 function tabs(){
@@ -719,13 +723,25 @@ function vLogin(){
   '<button class="cta static" form="loginForm" type="submit"'+(ui.login.busy?" disabled":"")+'>'+(ui.login.busy?"Belépés…":"Belépés")+'</button>'+
   '<div class="guestbox"><button class="guestbtn" data-act="guest">Belépés vendégként</button><p>Saját daltárral indulsz, ami csak ezen a telefonon tárolódik.</p></div></div>';
 }
-function setsList(){
-  const arr=sortedSets();
-  if(!arr.length) return emptyState("sets");
+/* past occasions move to the archive by themselves the day after; a setlist can also be archived or brought back by hand */
+const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const isArch=s=>s.archived===true||(s.archived!==false&&!!s.date&&s.date<todayStr());
+function setRows(arr){
   const MON=["jan","feb","márc","ápr","máj","jún","júl","aug","szept","okt","nov","dec"];
   return '<div class="glist sets">'+arr.map(s=>{const n=(s.songIds||[]).filter(id=>songs.has(id)).length;
     const d=s.date?new Date(s.date+"T12:00"):null, ok=d&&!isNaN(d);
-    return '<button class="row" data-act="openset" data-id="'+s.id+'"><span class="dstack"><b>'+(ok?d.getDate():"·")+'</b><span>'+(ok?MON[d.getMonth()]:"")+'</span></span><div class="main"><div class="t1">'+esc(s.name||"Névtelen setlist")+'</div><div class="t2">'+n+' dal</div></div><span class="chev">'+ico.chev+'</span></button>'}).join("")+'</div>';
+    return '<button class="row" data-act="openset" data-id="'+s.id+'"><span class="dstack"><b>'+(ok?d.getDate():"·")+'</b><span>'+(ok?MON[d.getMonth()]:"")+'</span></span><div class="main"><div class="t1">'+esc(s.name||"Névtelen setlist")+'</div><div class="t2">'+n+' dal'+(ok&&isArch(s)&&d.getFullYear()!==new Date().getFullYear()?' · '+d.getFullYear():'')+'</div></div><span class="chev">'+ico.chev+'</span></button>'}).join("")+'</div>';
+}
+function setsList(){
+  const all=sortedSets(), arr=all.filter(s=>!isArch(s)).reverse(), na=all.length-arr.length; /* the next occasion first */
+  const arch=na?'<button class="archrow" data-act="archive"><span>Archívum</span><span class="an">'+na+' korábbi alkalom</span>'+ico.chev+'</button>':'';
+  if(!arr.length) return emptyState("sets")+arch;
+  return setRows(arr)+arch;
+}
+function vArchive(){
+  const arr=sortedSets().filter(isArch);
+  return '<div class="wrap"><div class="top"><button class="link" data-act="home">'+ico.back+' Setlistek</button></div><h1 class="h1">Archívum</h1><p class="sub">Korábbi alkalmak, a legutóbbi elöl.</p>'+
+  (arr.length?setRows(arr):'<div class="empty-state">Még nincs archivált setlist.</div>')+'</div>';
 }
 function songsList(){
   const q=norm(ui.q), arr=sortedSongs().filter(s=>!q||norm(s.title+" "+(s.alt||"")+" "+s.artist).includes(q));
@@ -782,7 +798,8 @@ function vSet(){
   '<div class="list'+(rows?' grouped':'')+'">'+(rows?rows+'<button class="addrow" data-act="picker">'+ico.plus.replace('width="24" height="24"','width="18" height="18"')+' Dal hozzáadása</button>':emptyState("set"))+'</div>'+
   '<label class="planbtn" for="s-img">'+ico.image+' Dallista képernyőképből</label><input id="s-img" type="file" accept="image/*" multiple hidden>'+
 
-  ('<div class="card" style="margin-top:28px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
+  '<button class="archbtn" data-act="togglearch">'+(isArch(s)?'Visszaállítás a setlistek közé':'Archiválás')+'</button>'+
+  ('<div class="card" style="margin-top:12px">'+(ui.confirmDel?'<div class="confirm"><span>Törlöd a setlistet?</span><button class="yes" data-act="dodelset">Törlés</button><button class="link" data-act="nodel">Mégse</button></div>':'<button class="danger" data-act="askdel">Setlist törlése</button>')+'</div>')+
   '</div>'+(ids.length?'<button class="cta" data-act="playfrom" data-i="0">'+ico.play+' Indítás</button>':"")+
   (ui.picker?vPicker(s):"")+(ui.keyFor?vKeySheet(s):"");
 }
@@ -964,7 +981,7 @@ document.addEventListener("pointercancel",endCard);
 /* light the tapped key at once, then close the sheet a beat later so the choice is seen */
 function markKey(b){const g=b.closest(".kgrid");if(g)g.querySelectorAll(".kopt.on").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
 let keyClosing=0;function closeKeySoon(){clearTimeout(keyClosing);keyClosing=setTimeout(()=>history.back(),180)}
-function startStage(list,i,keys,setId,joins){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},base:{...(keys||{})},joins:joins||{},setId:setId||null,from:{view:ui.view,id:ui.id}};
+function startStage(list,i,keys,setId,joins){$("#toast").hidden=true;ui.stage={list,i,keys:{...(keys||{})},base:{...(keys||{})},joins:joins||{},setId:setId||null,from:{view:ui.view,id:ui.id,fa:!!ui.fromArch}};
   if(i>0&&joinedAt(ui.stage,i-1)) ui.stage.i=i-1;ui.view="stage";render();settleStage();lockScreen()}
 /* on entry iOS still shifts the layout for a few frames (safe-area insets, fonts); keep the chart hidden until the area stops changing so it appears once, at its final size */
 function settleStage(){
@@ -991,7 +1008,7 @@ function render(){
   if(!auth){$("#app").innerHTML=vLogin();document.body.style.overflow="";return}
   const v=ui.view;
   measureSab();
-  $("#app").innerHTML=v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
+  $("#app").innerHTML=v==="archive"?vArchive():v==="song"?vSong():v==="edit"?vEdit():v==="set"?vSet():v==="stage"?vStage():vHome();
   document.body.style.overflow=(v==="stage"||ui.picker||ui.coverPick||ui.keyFor||ui.stageKey||ui.stageLib)?"hidden":"";
   /* iOS paints the strip under the home bar with the page background, not the stage's; match it so a dark stage stays black on a light-mode phone */
   {const sb=v==="stage"?(prefs.light?"#fff":"#000"):""; document.documentElement.style.background=sb; document.body.style.background=sb}
@@ -1020,7 +1037,9 @@ document.addEventListener("click",e=>{
       else go("edit",{draft:{id:null,title:"",artist:"",key:"",bpm:"",notes:"",body:""}});
       break;
     case "opensong": ui.homeY=window.scrollY; push(); go("song",{id}); break;
-    case "openset": ui.homeY=window.scrollY; push(); go("set",{id}); break;
+    case "openset": {const fa=ui.view==="archive"; if(fa)ui.archY=window.scrollY; else ui.homeY=window.scrollY; push(); go("set",{id,fromArch:fa})} break;
+    case "archive": ui.homeY=window.scrollY; push(); go("archive"); break;
+    case "togglearch": {const a=isArch(set); put("setlists",set.id,{...set,archived:!a,updatedAt:Date.now()}); toast(a?"Visszakerült a setlistek közé":"Archiválva"); render()} break;
     case "stageedit": {const s=songs.get(id); if(!s)break; push(); ui.editFromStage=true;
       go("edit",{draft:{id:s.id,title:s.title||"",alt:s.alt||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
     case "edit": push(); {const s=songs.get(ui.id);go("edit",{draft:{id:s.id,title:s.title||"",alt:s.alt||"",artist:s.artist||"",key:s.key||"",bpm:s.bpm||"",notes:s.notes||"",body:s.body||"",cover:s.cover||""}})} break;
@@ -1127,10 +1146,11 @@ function backAction(){
   if(ui.picker){ui.picker=false;render();return}
   if(ui.coverPick){ui.coverPick=false;render();return}
   if(ui.view==="stage"&&!stageExit){push();return}
-  if(ui.view==="stage"){stageExit=false;const f=ui.stage?ui.stage.from:{view:"home"};releaseScreen();ui.stage=null;go(f.view,{id:f.id});return}
+  if(ui.view==="stage"){stageExit=false;const f=ui.stage?ui.stage.from:{view:"home"};releaseScreen();ui.stage=null;go(f.view,{id:f.id,fromArch:!!f.fa});return}
   /* a chart added from the stage goes straight back to the same song on stage */
   if(ui.view==="edit"&&ui.editFromStage&&ui.stage){ui.editFromStage=false;ui.ocr=null;ui.draft=null;ui.view="stage";render();settleStage();return}
   if(ui.view==="edit"){ui.ocr=null;const id=ui.draft&&ui.draft.id;if(id&&songs.has(id))go("song",{id});else goHome();return}
+  if(ui.view==="set"&&ui.fromArch){const y=ui.archY||0;go("archive");window.scrollTo(0,y);requestAnimationFrame(()=>window.scrollTo(0,y));return}
   if(ui.view!=="home") goHome();
 }
 window.addEventListener("popstate",()=>{if(ignorePop){ignorePop=false;return}backAction()});
@@ -1161,9 +1181,10 @@ function underHTML(){
   let v="home",id=null;
   if(ui.view==="stage"){const f=ui.stage&&ui.stage.from;if(f){v=f.view;id=f.id}}
   else if(ui.view==="edit"){const d=ui.draft&&ui.draft.id;if(d&&songs.has(d)){v="song";id=d}}
+  else if(ui.view==="set"&&ui.fromArch) v="archive";
   else if(ui.view==="home") return null;
   const keep={view:ui.view,id:ui.id};ui.view=v;ui.id=id;
-  let html="";try{html=v==="song"?vSong():v==="set"?vSet():v==="stage"?"":vHome()}finally{ui.view=keep.view;ui.id=keep.id}
+  let html="";try{html=v==="archive"?vArchive():v==="song"?vSong():v==="set"?vSet():v==="stage"?"":vHome()}finally{ui.view=keep.view;ui.id=keep.id}
   return {html,v};
 }
 function showUnder(){
